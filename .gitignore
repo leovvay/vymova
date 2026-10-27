@@ -7,3 +7,8 @@
 __pycache__/
 .venv/
 data/
+backend/.venv/
+*.egg-info/
+backend/vymova/static/
+node_modules/
+frontend/dist/
