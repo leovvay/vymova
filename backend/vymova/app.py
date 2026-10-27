@@ -6,15 +6,26 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from . import settings
+from contextlib import asynccontextmanager
+
+from . import lessons, settings
+from .lessons import steps
 from .config import PORT
 
 STATIC = Path(__file__).parent / "static"
 
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    steps.register_all()
+    lessons.runner.start()
+    yield
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title="Vymova")
+    app = FastAPI(title="Vymova", lifespan=_lifespan)
     app.include_router(settings.router)
+    app.include_router(lessons.router)
     if STATIC.exists():
         app.mount("/", StaticFiles(directory=STATIC, html=True), name="static")
     return app
