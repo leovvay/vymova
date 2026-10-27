@@ -93,7 +93,7 @@ def _student(d: Path, lesson_id: str, name: str, folder: str, by_i: dict, host: 
                       "href": clip_href(lesson_id, folder, c["file"]),
                       "blind": [{"model": m, "text": blind[m].get(c["clip"], "—")} for m in pair]})
 
-    return {"name": name, "low_speech": lang.get("low_speech", False), "speech_sec": lang.get("speech_sec", 0),
+    return {"name": name, "blind_count": len(pair), "low_speech": lang.get("low_speech", False), "speech_sec": lang.get("speech_sec", 0),
             "blind_unavailable": unavailable.get("reason_ru"), "top5": lang.get("top5", []),
             "confirmed": confirmed, "possible": possible, "acoustic": acoustic, "acoustic_models": models,
             "acoustic_skipped": ac.get("reason_ru") if ac.get("skipped") else None,

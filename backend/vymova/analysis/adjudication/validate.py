@@ -23,8 +23,12 @@ def quote_ok(quote: str, transcription: str) -> bool:
 MIN_AB_SIM = 0.5  # both models must hear the same spot, not different words
 
 
-def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], replies: dict[str, str | None]) -> dict:
-    """Recomputes the status from the actual quotes. The model cannot "confirm" without support from both transcriptions."""
+def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str] | None, replies: dict[str, str | None],
+          acoustic_ok: bool = False) -> dict:
+    """Recomputes the status from the actual quotes. Two blind models: "confirmed" needs a matching quote from both.
+    One blind model: "confirmed" needs verified quotes in two different clips, or one clip plus acoustic support."""
+    if blind_b is None:
+        return _check_single(finding, blind_a, replies, acoustic_ok)
     f = dict(finding)
     kept, best = [], "none"
     for ex in f.get("examples") or []:
@@ -62,4 +66,38 @@ def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], repli
 
     word_hits = [e for e in f["examples"] if taught(e)]
     f["taught_in_lesson"] = bool(word_hits)
+    return f
+
+
+def _taught(examples: list[dict], replies: dict[str, str | None]) -> bool:
+    for e in examples:
+        reply = norm(replies.get(e["clip"]) or "")
+        word = norm(e.get("word", "")).strip(".,!?")
+        if word and len(reply.split()) <= 8 and word in reply:
+            return True
+    return False
+
+
+def _check_single(finding: dict, blind_a: dict[str, str], replies: dict[str, str | None], acoustic_ok: bool) -> dict:
+    f = dict(finding)
+    kept = []
+    for ex in f.get("examples") or []:
+        cid = ex.get("clip")
+        if cid not in blind_a:
+            continue
+        ok = quote_ok((ex.get("quotes") or {}).get("A", ""), blind_a.get(cid, ""))
+        kept.append({**ex, "verified": "A" if ok else "none"})
+    clips_ok = {e["clip"] for e in kept if e["verified"] == "A"}
+    if f.get("status") == "rejected":
+        status = "rejected"
+    elif len(clips_ok) >= 2 or (len(clips_ok) == 1 and acoustic_ok):
+        status = "confirmed"
+    elif clips_ok:
+        status = "possible"
+    else:
+        status = "rejected"
+        f["reason_ru"] = f.get("reason_ru") or "Цитаты из слепой записи не подтвердились."
+    f["status"] = status
+    f["examples"] = [e for e in kept if e["verified"] == "A"] if status != "rejected" else kept
+    f["taught_in_lesson"] = _taught(f["examples"], replies)
     return f

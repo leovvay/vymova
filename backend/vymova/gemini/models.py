@@ -3,9 +3,6 @@ import httpx
 from ..errors import StepError
 from .client import BASE, _check
 
-BLIND_PAIRS = [("gemini-4-argon", "gemini-3.1-pro-preview"),
-               ("gemini-3.1-pro-preview", "gemini-3.8-flash"),
-               ("gemini-2.5-pro", "gemini-3.8-flash")]
 MAIN = ["gemini-4-argon", "gemini-3.1-pro-preview", "gemini-2.5-pro"]
 
 
@@ -19,11 +16,14 @@ def available(key: str) -> list[str]:
             if "generateContent" in m.get("supportedGenerationMethods", [])]
 
 
-def pick_blind_pair(key: str, override: list[str] | None = None) -> tuple[str, str] | None:
+def pick_blind_models(key: str, override: list[str] | None = None) -> list[str] | None:
+    """Blind-check models. Default: one model (the main one). Settings may name one model or two distinct models;
+    with two, a pattern is confirmed only when both hear it."""
     have = set(available(key))
-    if override and len(override) == 2 and override[0] != override[1] and set(override) <= have:
-        return override[0], override[1]
-    return next((p for p in BLIND_PAIRS if set(p) <= have), None)
+    if override and 1 <= len(override) <= 2 and len(set(override)) == len(override) and set(override) <= have:
+        return list(override)
+    main = next((m for m in MAIN if m in have), None)
+    return [main] if main else None
 
 
 def pick_main(key: str) -> str:

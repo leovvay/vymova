@@ -42,17 +42,17 @@ export function SettingsPage() {
     e.preventDefault();
     const a = modelA.trim();
     const b = modelB.trim();
-    if ((a && !b) || (!a && b)) {
-      setErrors({ models: "Укажите обе модели или оставьте оба поля пустыми." });
+    if (!a && b) {
+      setErrors({ models: "Сначала укажите основную модель — вторая необязательна." });
       return;
     }
     if (a && a === b) {
-      setErrors({ models: "Нужны две разные модели: одна модель дважды не считается независимой проверкой." });
+      setErrors({ models: "Вторая модель должна отличаться от первой: одна модель дважды не считается независимой проверкой." });
       return;
     }
     const upd: SettingsUpdate = {
       acoustic_enabled: acoustic,
-      blind_models: a ? [a, b] : [],
+      blind_models: a ? (b ? [a, b] : [a]) : [],
       elevenlabs_key: eleven.trim() ? eleven.trim() : null,
       gemini_key: gemini.trim() ? gemini.trim() : null,
     };
@@ -146,13 +146,13 @@ export function SettingsPage() {
           </summary>
           <div className="settings__more-body">
             <p className="settings__text">
-              Две разные модели Gemini независимо слушают реплики. Оставьте поля пустыми — программа выберет
-              подходящую пару сама.
+              По умолчанию реплики вслепую слушает одна модель — Gemini 4 Argon. Можно указать другую или добавить
+              вторую: тогда ошибка подтверждается, только если её услышали обе. Так точнее, но заметно дороже.
             </p>
             <div className="settings__models">
               <div className="field">
                 <label className="field__label" htmlFor="model-a">
-                  Первая модель
+                  Модель
                 </label>
                 <input
                   id="model-a"
@@ -168,7 +168,7 @@ export function SettingsPage() {
               </div>
               <div className="field">
                 <label className="field__label" htmlFor="model-b">
-                  Вторая модель
+                  Вторая модель — необязательно
                 </label>
                 <input
                   id="model-b"

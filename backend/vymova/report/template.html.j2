@@ -51,7 +51,7 @@
 
 {% if s.confirmed %}
 <h2><span class="n">1</span>Произношение — подтверждено</h2>
-<p class="t">Обе независимые слепые расшифровки услышали одно и то же.</p>
+<p class="t">{% if s.blind_count > 1 %}Обе независимые слепые расшифровки услышали одно и то же.{% else %}Слепая фонетическая запись показала это минимум в двух репликах — или в одной, и это подтвердила акустика.{% endif %}</p>
 {% for f in s.confirmed %}
 <div class="card">
   <h3><span class="num">1.{{ loop.index }}</span>{{ f.title_ru }}
@@ -87,7 +87,7 @@
   {% for f in s.possible %}
   <tr><td>{{ f.title_ru }}{% for e in f.examples[:2] %} <span class="ph">{{ e.heard_ru }}</span>{% endfor %}</td>
     <td class="c">{{ f.examples|map(attribute="time")|join(", ") }}</td>
-    <td class="c">{% if f.acoustic and f.acoustic.verdict == "confirmed" %}<b>вероятно</b>: одна слепая запись + акустика ✓{% else %}{{ f.reason_ru or "услышала только одна модель" }}{% endif %}</td></tr>
+    <td class="c">{% if f.acoustic and f.acoustic.verdict == "confirmed" %}<b>вероятно</b>: одна слепая запись + акустика ✓{% else %}{{ f.reason_ru or ("услышала только одна модель" if s.blind_count > 1 else "только в одной реплике") }}{% endif %}</td></tr>
   {% endfor %}
 </table>
 {% endif %}
@@ -124,7 +124,7 @@
 {% for s in students %}
 <section class="appx">
 <h2 class="pb"><span class="n">A</span>Приложение — {{ s.name }}: фонетическая расшифровка всех реплик</h2>
-<p class="t">Под каждым словом — что услышали две акустические модели (IPA), ниже — две слепые фонетические записи. Жёлтым — слова из найденных ошибок. Клик по номеру реплики открывает её аудио.</p>
+<p class="t">Под каждым словом — что услышали две акустические модели (IPA), ниже — слепая фонетическая запись Gemini. Жёлтым — слова из найденных ошибок. Клик по номеру реплики открывает её аудио.</p>
 <div class="legend">
   <div><span class="sw lvc">оранжевым</span> — wav2vec2 lv-60 &nbsp; <span class="sw xlc">синим</span> — wav2vec2 XLSR-53 &nbsp; «—» — модель ничего не распознала</div>
   <div><b>Шпаргалка IPA:</b> ʲ — мягкость · tʃ — ч · ts — ц · ɕ — мягкое сь · ʃ — ш · f — ф · v — в · ʋ, w — ў · ɨ, ʌ, ɐ, ə — «ы»-подобные / редуцированные · ɪ — и · ː — долгота</div>

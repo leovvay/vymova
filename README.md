@@ -8,7 +8,7 @@ Pronunciation, grammar and vocabulary error analysis for students of Ukrainian, 
 
 The tutor uploads a recording of an online group lesson and marks who is who. 15–20 minutes later they get
 **one PDF for the whole lesson**. For each student it covers:
-- which sounds they get wrong (confirmed by two independent checks);
+- which sounds they get wrong (checked against a blind phonetic transcription and an acoustic layer);
 - grammar mistakes;
 - words from other languages;
 - what to practise.
@@ -52,7 +52,7 @@ compared with dictionary pronunciation and with how often the recognisers distor
 
 **Appendix: every utterance, phonetically.**
 - Under each word: the IPA from both acoustic models.
-- Below: both blind Gemini transcriptions.
+- Below: the blind Gemini transcription.
 - The clip number opens the audio of that utterance.
 
 <img src="docs/images/report-appendix.png" width="760" alt="Report appendix: per-word IPA and blind transcriptions">
@@ -65,7 +65,7 @@ flowchart LR
   scribe --> who{Tutor marks<br/>who is who}
   who --> clips[Clips per student]
   clips --> pass1[Gemini first pass<br/>candidate errors]
-  clips --> blind[Blind check<br/>2 Gemini models<br/>phonetic transcription]
+  clips --> blind[Blind check<br/>Gemini 4 Argon<br/>phonetic transcription]
   clips --> ac[Acoustic layer<br/>wav2vec2 → IPA]
   wik[(Wiktionary IPA)] --> ac
   cal[(FLEURS native<br/>calibration)] --> ac
@@ -86,16 +86,20 @@ A single listening model invents mistakes. Vymova therefore treats every first-p
 
 ```mermaid
 flowchart TD
-  cand[Candidate from the first pass] --> quotes{Verbatim quotes found in<br/>BOTH blind transcriptions<br/>of the same clip?}
-  quotes -- both --> conf[✔ Confirmed]
-  quotes -- one --> acou{Acoustic layer<br/>confirms it?}
-  acou -- yes --> likely[Likely]
+  cand[Candidate from the first pass] --> quotes{Verbatim quote found in the<br/>blind transcription?}
+  quotes -- "in 2+ clips" --> conf[✔ Confirmed]
+  quotes -- "in 1 clip" --> acou{Acoustic layer<br/>supports it?}
+  acou -- yes --> conf
   acou -- no --> open[Open question]
   quotes -- none --> rej[Rejected]
 ```
 
-The blind models never see the candidates; they only write down what they hear. The adjudicator has to cite both
-transcriptions word for word, and code checks that the quotes exist and match each other.
+The blind model never sees the candidates; it only writes down what it hears in each clip. The adjudicator has to
+quote that transcription word for word, and code checks that each quote really is in that clip's transcription.
+
+For a stricter check you can add a **second blind model** in Settings (for example `gemini-3.1-pro-preview`). Then a
+pattern is confirmed only when both models heard it in the same clip. This costs about $0.80 more per student, see
+below.
 
 ## Cost per lesson
 
@@ -103,48 +107,46 @@ The tutor pays with their own ElevenLabs and Gemini keys. Everything else runs o
 acoustic layer, voice memory and PDF.
 
 **Measured on 2026-10-27.** The recording is a 55-minute group lesson with 3 voices (the tutor and 2 students), run in
-Docker on a fresh install with an empty word cache. Token counts come from the app's own usage ledger
-(`usage.jsonl` in the lesson folder). Prices are the public paid-tier list prices on that day.
+Docker on a fresh install with an empty word cache, using the default single blind model. Token counts come from the
+app's own usage ledger (`usage.jsonl` in the lesson folder). Prices are the public paid-tier list prices on that day.
 
 | Step | Service / model | Usage | USD |
 |---|---|---|---:|
 | Transcription | ElevenLabs Scribe v2 | 55 min of audio (1,219 credits) | 0.20 |
 | First pass | Gemini 4 Argon | 120k in (99k audio) · 7k out | 0.31 |
-| Blind check | Gemini 4 Argon | 39k in · 15k out | 0.23 |
-| Blind check | Gemini 3.1 Pro | 30k in · 126k out, of which 108k is thinking | 1.57 |
-| Word pronunciation¹ | Gemini 3.8 Flash | 2k in · 63k out (mostly thinking) | 0.24 |
-| Adjudicator | Gemini 4 Argon | 48k in · 14k out | 0.24 |
-| Grammar & vocabulary | Gemini 4 Argon | 24k in · 5k out | 0.10 |
-| Group summary | Gemini 4 Argon | 1k in · 0.4k out | 0.01 |
+| Blind check | Gemini 4 Argon | 39k in (28k audio) · 15k out | 0.23 |
+| Word pronunciation¹ | Gemini 3.8 Flash | 2k in · 54k out (mostly thinking) | 0.21 |
+| Adjudicator | Gemini 4 Argon | 39k in · 12k out | 0.20 |
+| Grammar & vocabulary | Gemini 4 Argon | 19k in · 4k out | 0.08 |
+| Group summary | Gemini 4 Argon | 1k in · 0.7k out | 0.01 |
 | Acoustic layer, voice memory, PDF | local CPU | — | 0.00 |
-| **Total** | | | **≈ 2.89** |
+| **Total** | | | **≈ 1.22** |
 
-¹ Paid only for words not seen before. The dictionary is cached, so later lessons cost about $0.24 less.
+¹ Paid only for words not seen before. The dictionary is cached, so later lessons cost about $0.21 less.
 
 **How it scales**
 - About **$0.52 per lesson**: transcription, first pass and summary.
-- About **$1.07 per student**: blind check, adjudicator, grammar.
-- So one student costs ≈ $1.6 a lesson, and four students ≈ $4.8.
+- About **$0.25 per student**: blind check, adjudicator, grammar.
+- So one student costs ≈ $0.80 a lesson, and four students ≈ $1.50.
+- With the optional second blind model (Gemini 3.1 Pro), add about **$0.80 per student**. In the measured run it was
+  $1.57 for two students, almost all of it thinking tokens, which are billed as output.
 
-**What drives the cost**
-- **Gemini thinking tokens.** They are billed as output, and Gemini 3.1 Pro spends most of its blind-check output on
-  thinking. That is more than half of the total.
-- **Gemini 4 Argon price change.** The list price doubles on **2026-12-01** (input $2 → $4, output $10 → $20 per 1M
-  tokens). The same lesson then costs about $3.75.
+**Price change ahead.** The Gemini 4 Argon list price doubles on **2026-12-01** (input $2 → $4, output $10 → $20 per
+1M tokens). The same lesson then costs about $2.05.
 
 **List prices used**
 | Model | Input, per 1M tokens | Output (incl. thinking), per 1M tokens |
 |---|---|---|
 | Gemini 4 Argon | $2 | $10 |
-| Gemini 3.1 Pro | $2 | $12 |
+| Gemini 3.1 Pro (optional) | $2 | $12 |
 | Gemini 3.8 Flash | $0.75 | $3.75 |
 
 ElevenLabs Scribe v2 costs $0.22 per hour of audio.
 
 **Time and memory on the same run** (18-core Mac, Docker):
-- 18 minutes end to end, 16.6 minutes after the voices were marked.
-- The longest steps were the acoustic layer (6.7 min, including the cold dictionary) and the blind check (5.1 min).
-- Peak memory was 4.0 GB.
+- 14.3 minutes end to end, 12.9 minutes after the voices were marked.
+- The longest step was the acoustic layer (6.7 min, including the cold dictionary). The blind check took 1.3 min.
+- Peak memory was 3.8 GB.
 - A typical Windows PC will be slower; this has not been measured yet.
 
 ## Install (Windows)

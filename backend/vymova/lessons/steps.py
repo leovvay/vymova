@@ -67,7 +67,7 @@ def _pass1(lesson: Lesson) -> None:
 
 def _blind(lesson: Lesson) -> None:
     st = settings.load()
-    pair = gemini.pick_blind_pair(st.gemini_key, st.blind_models)
+    pair = gemini.pick_blind_models(st.gemini_key, st.blind_models)
     folders = store.read_json(lesson.id, "clips/index.json")
     out = blind.run(store.dir(lesson.id), folders, pair, st.gemini_key)
     store.write_json(lesson.id, "blind/index.json", {**out, "students": folders})

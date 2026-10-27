@@ -56,12 +56,13 @@ def _transcribe(model: str, clips: list[dict], clip_dir: Path, key: str, partial
     return out
 
 
-def run(lesson_dir: Path, folders: dict[str, str], pair: tuple[str, str] | None, key: str) -> dict:
+def run(lesson_dir: Path, folders: dict[str, str], pair: list[str] | None, key: str) -> dict:
+    """pair: the blind-check models (one or two)."""
     blind_dir = lesson_dir / "blind"
     blind_dir.mkdir(exist_ok=True)
     if pair is None:
         write_json(blind_dir / "_unavailable.json",
-                   {"reason_ru": "Для этого ключа нет двух разных сильных моделей Gemini — блок «подтверждено» не формируется."})
+                   {"reason_ru": "Для этого ключа нет подходящей модели Gemini для слепой проверки — блок «подтверждено» не формируется."})
         return {"pair": None}
     for name, folder in folders.items():
         clip_dir = lesson_dir / "clips" / folder
