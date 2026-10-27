@@ -43,7 +43,11 @@ def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], repli
         f["reason_ru"] = f.get("reason_ru") or "Цитаты из слепых записей не подтвердились."
     f["status"] = status
     f["examples"] = [e for e in kept if e["verified"] != "none"] if status != "rejected" else kept
-    word_hits = [e for e in f["examples"] if e.get("word") and replies.get(e["clip"])
-                 and norm(e["word"]).strip(".,!?") in norm(replies[e["clip"]])]
+    def taught(e: dict) -> bool:
+        reply = norm(replies.get(e["clip"]) or "")
+        word = norm(e.get("word", "")).strip(".,!?")
+        return bool(word) and len(reply.split()) <= 8 and word in reply  # короткая реплика-повтор = поправка
+
+    word_hits = [e for e in f["examples"] if taught(e)]
     f["taught_in_lesson"] = bool(word_hits)
     return f

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Разбор урока — {{ lesson.date_ru }}</title>
+<style>
+{{ css|safe }}
+.cover-students { margin-top: 6px; font-size: 10pt; }
+.warn { background: #fdf1d8; border-left: 4px solid var(--amber); padding: 8px 12px; border-radius: 4px; margin: 6px 0; font-size: 9.4pt; }
+.student { break-before: page; }
+.student-name { font-size: 18pt; margin: 0 0 4px; }
+.lowspeech { color: var(--muted); font-size: 11pt; margin: 10px 0; }
+.lang-h { font-size: 10.6pt; margin: 10px 0 2px; }
+</style>
+</head>
+<body><div class="wrap">
+
+<header>
+  <div class="flag"><i></i><i></i></div>
+  <div class="kicker">Урок украинского · {{ lesson.minutes }} мин · {{ students|length }} {{ students|length|plural("студент", "студента", "студентов") }}</div>
+  <h1>Разбор урока — {{ lesson.date_ru }}</h1>
+  <div class="meta">{% if lesson.topic %}Тема: {{ lesson.topic }} · {% endif %}Студенты: {{ students|map(attribute="name")|join(", ") }}</div>
+</header>
+
+<div class="top">
+  <h2>Сводка по группе</h2>
+  {% if summary.common %}
+  <p><b>Общее у нескольких студентов — тема для следующего урока:</b></p>
+  <ul>{% for c in summary.common %}<li>{{ c.title_ru }} <span class="t">({{ c.students|join(", ") }})</span></li>{% endfor %}</ul>
+  {% endif %}
+  {% for s in students %}
+  <p style="margin-top:6px"><b>{{ s.name }}:</b></p>
+  <ol>{% for t in summary.per_student_top3.get(s.name, []) %}<li>{{ t }}</li>{% endfor %}</ol>
+  {% endfor %}
+</div>
+
+{% for s in students %}
+<section class="student">
+<h2 class="student-name">{{ s.name }}</h2>
+{% if s.low_speech %}
+<p class="lowspeech">Мало речи для разбора ({{ s.speech_sec|round|int }} с). Ниже — только то, что удалось услышать.</p>
+{% endif %}
+{% if s.blind_unavailable %}<div class="warn">{{ s.blind_unavailable }}</div>{% endif %}
+
+{% if s.top5 %}
+<div class="top">
+  <h2>Топ-5 к следующему уроку</h2>
+  <ol>{% for t in s.top5 %}<li><b>{{ t.title_ru }}.</b> {{ t.detail_ru }}</li>{% endfor %}</ol>
+</div>
+{% endif %}
+
+{% if s.confirmed %}
+<h2><span class="n">1</span>Произношение — подтверждено</h2>
+<p class="t">Обе независимые слепые расшифровки услышали одно и то же.</p>
+{% for f in s.confirmed %}
+<div class="card">
+  <h3><span class="num">1.{{ loop.index }}</span>{{ f.title_ru }}
+    {% if f.acoustic and f.acoustic.verdict == "confirmed" %}<span class="tag hi">акустика ✓</span>{% elif f.taught_in_lesson %}<span class="tag mid">исправлено на уроке</span>{% endif %}</h3>
+  {% if f.rule_ru %}<div class="rule">{{ f.rule_ru }}</div>{% endif %}
+  <ul>{% for e in f.examples %}
+    <li><b>{{ e.word }}</b> → <span class="ph">{{ e.heard_ru }}</span>{% if e.expected_ru %}, надо <span class="ok">{{ e.expected_ru }}</span>{% endif %} <span class="t">{{ e.time }}</span></li>
+  {% endfor %}</ul>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if s.acoustic %}
+<h2><span class="n">2</span>Акустическая проверка — без языковых моделей</h2>
+<p class="t">Модели распознавания фонем переводят звук прямо в IPA. Эталон — словарное произношение (Викисловарь); поправка — как модели искажают речь носителей.</p>
+<table>
+  <tr><th style="width:34%">Что</th>{% for m in s.acoustic_models %}<th>{{ m.short }}</th>{% endfor %}<th>У носителей</th><th>Итог</th></tr>
+  {% for f in s.acoustic %}
+  <tr><td>{{ f.label_ru }}</td>
+    {% for m in s.acoustic_models %}<td>{% set r = f.models.get(m.id) %}{% if r %}{{ r.k }} из {{ r.n }}{% else %}—{% endif %}</td>{% endfor %}
+    <td class="c">{{ f.native }}</td>
+    <td>{% if f.verdict == "confirmed" %}<span class="v">✓ подтверждено</span>{% elif f.verdict == "likely" %}<b>вероятно</b>{% else %}<span class="c">модель не различает</span>{% endif %}</td></tr>
+  {% endfor %}
+</table>
+{% elif s.acoustic_skipped %}
+<p class="t">Акустическая проверка не запускалась: {{ s.acoustic_skipped }}.</p>
+{% endif %}
+
+{% if s.possible %}
+<h3>Под вопросом</h3>
+<table>
+  <tr><th style="width:44%">Что</th><th style="width:22%">Где</th><th>Почему не подтверждено</th></tr>
+  {% for f in s.possible %}
+  <tr><td>{{ f.title_ru }}{% for e in f.examples[:2] %} <span class="ph">{{ e.heard_ru }}</span>{% endfor %}</td>
+    <td class="c">{{ f.examples|map(attribute="time")|join(", ") }}</td>
+    <td class="c">{% if f.acoustic and f.acoustic.verdict == "confirmed" %}<b>вероятно</b>: одна слепая запись + акустика ✓{% else %}{{ f.reason_ru or "услышала только одна модель" }}{% endif %}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if s.grammar %}
+<h2><span class="n">3</span>Грамматика</h2>
+<table>
+  <tr><th style="width:9%">Время</th><th style="width:27%">Сказал</th><th style="width:24%">Надо</th><th>Правило</th></tr>
+  {% for g in s.grammar %}<tr><td class="c">{{ g.time }}</td><td>{{ g.said }}</td><td><b>{{ g.correct }}</b></td><td class="c">{{ g.rule_ru }}</td></tr>{% endfor %}
+</table>
+{% endif %}
+
+{% if s.interference %}
+<h2><span class="n">4</span>Лексика — слова из других языков</h2>
+<p class="t"><span class="v">✓</span> — слепая проверка показала, что сказано именно так; расшифровка это слово «исправила».</p>
+{% for lang in s.interference %}
+<h3 class="lang-h">{{ lang.title }}</h3>
+<table>
+  <tr><th style="width:52%">Сказал</th><th>Надо</th></tr>
+  {% for r in lang.rows %}<tr><td>{{ r.said }}{% if r.asr_normalized %} <span class="v">✓</span>{% endif %} <span class="t">{{ r.time }}</span></td><td>{{ r.correct }}</td></tr>{% endfor %}
+</table>
+{% endfor %}
+{% endif %}
+
+{% if s.strengths or s.drills %}
+<div class="grid2">
+  <div>{% if s.strengths %}<h2><span class="n">5</span>Что получилось хорошо</h2><ul class="good">{% for x in s.strengths %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}</div>
+  <div>{% if s.drills %}<h2><span class="n">6</span>Что тренировать</h2><ul class="good">{% for x in s.drills %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}</div>
+</div>
+{% endif %}
+</section>
+{% endfor %}
+
+{% for s in students %}
+<section class="appx">
+<h2 class="pb"><span class="n">A</span>Приложение — {{ s.name }}: фонетическая расшифровка всех реплик</h2>
+<p class="t">Под каждым словом — что услышали две акустические модели (IPA), ниже — две слепые фонетические записи. Жёлтым — слова из найденных ошибок. Клик по номеру реплики открывает её аудио.</p>
+<div class="legend">
+  <div><span class="sw lvc">оранжевым</span> — wav2vec2 lv-60 &nbsp; <span class="sw xlc">синим</span> — wav2vec2 XLSR-53 &nbsp; «—» — модель ничего не распознала</div>
+  <div><b>Шпаргалка IPA:</b> ʲ — мягкость · tʃ — ч · ts — ц · ɕ — мягкое сь · ʃ — ш · f — ф · v — в · ʋ, w — ў · ɨ, ʌ, ɐ, ə — «ы»-подобные / редуцированные · ɪ — и · ː — долгота</div>
+</div>
+{% for c in s.clips %}
+<div class="clip"><div class="ch"><a href="{{ c.href }}">{{ c.clip }}</a> <span class="t">{{ c.time }}</span></div>
+  <div class="il">{% for w in c.words %}<span class="w{% if w.hl %} hl{% endif %}"><span class="o">{{ w.text }}</span><span class="a">{{ w.a }}</span><span class="b">{{ w.b }}</span></span>{% endfor %}</div>
+  {% for b in c.blind %}<div class="bl"><b>{{ b.model }}:</b> {{ b.text }}</div>{% endfor %}
+</div>
+{% endfor %}
+</section>
+{% if s.acoustic %}
+<section class="appx">
+<h2 class="pb"><span class="n">B</span>Приложение — {{ s.name }}: проверенные слова против эталона</h2>
+<p class="t">Примеры по каждому акустическому паттерну: эталон (словарь) и что услышала каждая модель.</p>
+{% for f in s.acoustic %}
+<div class="tw"><h3>{{ f.label_ru }}</h3>
+  {% for ex in f.examples %}<div class="r"><span class="t">{{ ex.time }}</span> <span class="wd">{{ ex.word }}</span> · эталон <span class="ok">{{ ex.expected }}</span> · услышано <span class="a">{{ ex.heard }}</span> <span class="t">({{ ex.model }})</span></div>{% endfor %}
+</div>
+{% endfor %}
+</section>
+{% endif %}
+{% endfor %}
+
+</div></body>
+</html>
