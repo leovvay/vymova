@@ -12,7 +12,7 @@ def _run(args: list[str], dst: Path, fmt: str) -> None:
     r = subprocess.run(["ffmpeg", "-v", "error", "-y", *args, "-f", fmt, str(tmp)], capture_output=True, text=True)
     if r.returncode != 0 or not tmp.exists() or tmp.stat().st_size == 0:
         tmp.unlink(missing_ok=True)
-        raise StepError(_BAD_INPUT)
+        raise StepError(_BAD_INPUT, retry=False)
     os.replace(tmp, dst)
 
 

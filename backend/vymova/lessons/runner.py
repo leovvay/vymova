@@ -103,7 +103,7 @@ def _run_lesson(lesson_id: str) -> None:
                 msg = e.message_ru if isinstance(e, StepError) else \
                     f"Шаг «{STEP_TITLES_RU[step]}» не удался: {type(e).__name__}."
                 log.warning("%s: step %s attempt %d failed: %s", lesson_id, step, attempt + 1, type(e).__name__)
-                if attempt < len(delays):
+                if attempt < len(delays) and not (isinstance(e, StepError) and not e.retry):
                     time.sleep(delays[attempt])
                     continue
                 _set(store.get(lesson_id), step, "failed", msg)

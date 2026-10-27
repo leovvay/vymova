@@ -11,7 +11,7 @@ URL = "https://api.elevenlabs.io/v1/speech-to-text"
 def transcribe(path: Path, key: str, num_speakers: int | None = None) -> dict:
     """Дословная расшифровка Scribe v2 со спикерами. Язык не задаётся, чтобы не «украинизировать» вставки."""
     if not key:
-        raise StepError("Не задан ключ ElevenLabs. Откройте «Настройки».")
+        raise StepError("Не задан ключ ElevenLabs. Откройте «Настройки».", retry=False)
     data = {"model_id": "scribe_v2", "diarize": "true", "timestamps_granularity": "word", "tag_audio_events": "true"}
     if num_speakers:
         data["num_speakers"] = str(num_speakers)
@@ -22,7 +22,7 @@ def transcribe(path: Path, key: str, num_speakers: int | None = None) -> dict:
     except httpx.HTTPError as e:
         raise StepError("Нет связи с ElevenLabs. Проверьте интернет и нажмите «Повторить».") from e
     if r.status_code in (401, 403):
-        raise StepError("ElevenLabs отклонил ключ. Проверьте его в «Настройках».")
+        raise StepError("ElevenLabs отклонил ключ. Проверьте его в «Настройках».", retry=False)
     if r.status_code == 429:
         raise StepError("ElevenLabs: превышен лимит запросов или закончились кредиты.")
     if r.status_code != 200:

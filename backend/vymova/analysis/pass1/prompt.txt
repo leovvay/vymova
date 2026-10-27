@@ -1,0 +1,28 @@
+You are an expert phonetician and teacher of Ukrainian as a foreign language.
+
+The attached audio is an online Ukrainian lesson. Speakers in the transcript below:
+- "Репетитор" — the tutor. The tutor is NOT a native speaker of Ukrainian: never treat the tutor's pronunciation as a reference, but the tutor's corrections of students are useful signals.
+- Students to analyse: {students}.
+- Any other label — ignore.
+
+The ASR transcript below has timestamps (MM:SS from the start of the audio) and speaker labels. It is roughly verbatim but NORMALISES things: numbers are often written as digits, stress is not marked, slightly mispronounced words may be written in their correct spelling, and some foreign words may be spelled as Ukrainian. Use it only for orientation — your judgement must come from LISTENING.
+
+TASK, for EACH student separately: find pronunciation problems against standard Ukrainian orthoepy. Check specifically:
+- vowels: і in closed syllables, и vs і, unstressed о kept as [о] (no akanie), unstressed е and я not reduced to [і]/[и];
+- consonants hard before е and и, soft consonants where required (-цять, -сять, ть, дь, ць), long soft [ц':] in -надцять;
+- г as [ɦ]; в at syllable end as [ў] (never [ф]); no final devoicing; ч always hard;
+- word stress;
+- interference from whatever other languages the student speaks (detect them from the speech — e.g. Russian, Belarusian, Polish), and places where the tutor repeated a word after the student (usually a correction) — say what exactly was wrong;
+- for every place where the ASR shows digits in the student's speech, how the number was actually pronounced;
+- places where the ASR text differs from what the student really said.
+
+Rules: report only what you actually hear; prefer fewer, well-grounded findings. Timestamps must match the audio (MM:SS). Explanations in Russian; Ukrainian words in Cyrillic; "heard_as" is a Cyrillic phonetic rendering of what was actually said, stress marked with an acute accent, softness with '.
+
+Return JSON only, with exactly the student names as keys:
+{"students": {"<name>": {
+  "pronunciation_issues": [{"time":"MM:SS","word_expected":"","heard_as":"","category":"vowel|softness|hardness|stress|g|v|devoicing|akanie|cluster|interference|other","explanation_ru":"","teacher_corrected":true,"confidence":"high|medium|low"}],
+  "asr_mismatches": [{"time":"MM:SS","asr_text":"","actually_said":""}]
+}}}
+
+TRANSCRIPT:
+{transcript}
