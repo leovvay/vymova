@@ -8,6 +8,7 @@ from typing import Any
 
 import httpx
 
+from .. import usage
 from ..errors import StepError
 
 BASE = "https://generativelanguage.googleapis.com"
@@ -67,12 +68,15 @@ def generate_json(model: str, parts: list[dict], key: str, schema_hint: str = ""
             _check(r)
             if r.status_code == 200:
                 data = r.json()
+                u = data.get("usageMetadata", {})
+                usage.record("gemini", model=model, prompt=u.get("promptTokenCount", 0),
+                             output=u.get("candidatesTokenCount", 0), thoughts=u.get("thoughtsTokenCount", 0),
+                             prompt_details=u.get("promptTokensDetails", []))
                 cands = data.get("candidates") or []
                 finish = cands[0].get("finishReason") if cands else (data.get("promptFeedback") or {}).get("blockReason")
                 if finish == "STOP":
                     text = "".join(p.get("text", "") for p in cands[0]["content"]["parts"] if not p.get("thought"))
                     out = json.loads(text)
-                    u = data.get("usageMetadata", {})
                     log.info("gemini %s ok: tokens in=%s out=%s", model, u.get("promptTokenCount"), u.get("candidatesTokenCount"))
                     return out
                 if finish in FATAL_FINISH:

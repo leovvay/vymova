@@ -3,6 +3,7 @@ from pathlib import Path
 
 import httpx
 
+from .. import usage
 from ..errors import StepError
 
 URL = "https://api.elevenlabs.io/v1/speech-to-text"
@@ -27,6 +28,8 @@ def transcribe(path: Path, key: str, num_speakers: int | None = None) -> dict:
         raise StepError("ElevenLabs: превышен лимит запросов или закончились кредиты.")
     if r.status_code != 200:
         raise StepError(f"ElevenLabs вернул ошибку {r.status_code}. Нажмите «Повторить» позже.")
+    usage.record("elevenlabs", model="scribe_v2", **{k: v for k, v in r.headers.items()
+                                                    if k.lower() in ("character-cost", "x-character-count", "request-id")})
     out = r.json()
     if not out.get("words"):
         raise StepError("ElevenLabs не нашёл речи в записи.", retry=False)

@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
+from .. import usage
 from ..errors import StepError
 from . import store
 from .model import STEP_TITLES_RU, STEPS, Lesson
@@ -97,7 +98,11 @@ def _run_lesson(lesson_id: str) -> None:
         delays = _delays()
         for attempt in range(len(delays) + 1):
             try:
-                result = reg.fn(lesson)
+                usage.set_current(store.dir(lesson_id), step)
+                try:
+                    result = reg.fn(lesson)
+                finally:
+                    usage.set_current(None, None)
                 lesson = store.get(lesson_id)
                 lesson.steps[step].attempts = 0
                 if result == "skipped":

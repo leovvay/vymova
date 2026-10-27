@@ -97,6 +97,56 @@ flowchart TD
 The blind models never see the candidates; they only write down what they hear. The adjudicator has to cite both
 transcriptions word for word, and code checks that the quotes exist and match each other.
 
+## Cost per lesson
+
+The tutor pays with their own ElevenLabs and Gemini keys. Everything else runs on the tutor's computer for free: the
+acoustic layer, voice memory and PDF.
+
+**Measured on 2026-10-27.** The recording is a 55-minute group lesson with 3 voices (the tutor and 2 students), run in
+Docker on a fresh install with an empty word cache. Token counts come from the app's own usage ledger
+(`usage.jsonl` in the lesson folder). Prices are the public paid-tier list prices on that day.
+
+| Step | Service / model | Usage | USD |
+|---|---|---|---:|
+| Transcription | ElevenLabs Scribe v2 | 55 min of audio (1,219 credits) | 0.20 |
+| First pass | Gemini 4 Argon | 120k in (99k audio) · 7k out | 0.31 |
+| Blind check | Gemini 4 Argon | 39k in · 15k out | 0.23 |
+| Blind check | Gemini 3.1 Pro | 30k in · 126k out, of which 108k is thinking | 1.57 |
+| Word pronunciation¹ | Gemini 3.8 Flash | 2k in · 63k out (mostly thinking) | 0.24 |
+| Adjudicator | Gemini 4 Argon | 48k in · 14k out | 0.24 |
+| Grammar & vocabulary | Gemini 4 Argon | 24k in · 5k out | 0.10 |
+| Group summary | Gemini 4 Argon | 1k in · 0.4k out | 0.01 |
+| Acoustic layer, voice memory, PDF | local CPU | — | 0.00 |
+| **Total** | | | **≈ 2.89** |
+
+¹ Paid only for words not seen before. The dictionary is cached, so later lessons cost about $0.24 less.
+
+**How it scales**
+- About **$0.52 per lesson**: transcription, first pass and summary.
+- About **$1.07 per student**: blind check, adjudicator, grammar.
+- So one student costs ≈ $1.6 a lesson, and four students ≈ $4.8.
+
+**What drives the cost**
+- **Gemini thinking tokens.** They are billed as output, and Gemini 3.1 Pro spends most of its blind-check output on
+  thinking. That is more than half of the total.
+- **Gemini 4 Argon price change.** The list price doubles on **2026-12-01** (input $2 → $4, output $10 → $20 per 1M
+  tokens). The same lesson then costs about $3.75.
+
+**List prices used**
+| Model | Input, per 1M tokens | Output (incl. thinking), per 1M tokens |
+|---|---|---|
+| Gemini 4 Argon | $2 | $10 |
+| Gemini 3.1 Pro | $2 | $12 |
+| Gemini 3.8 Flash | $0.75 | $3.75 |
+
+ElevenLabs Scribe v2 costs $0.22 per hour of audio.
+
+**Time and memory on the same run** (18-core Mac, Docker):
+- 18 minutes end to end, 16.6 minutes after the voices were marked.
+- The longest steps were the acoustic layer (6.7 min, including the cold dictionary) and the blind check (5.1 min).
+- Peak memory was 4.0 GB.
+- A typical Windows PC will be slower; this has not been measured yet.
+
 ## Install (Windows)
 
 1. Install **Docker Desktop**: https://www.docker.com/products/docker-desktop/
