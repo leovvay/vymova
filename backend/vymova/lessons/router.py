@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
+from .. import speakers
 from . import runner, store
 from .model import Lesson
 
@@ -16,8 +17,11 @@ def _get(lesson_id: str) -> Lesson:
 
 
 @router.post("")
-def create_lesson(file: UploadFile = File(...), date: str | None = Form(None), topic: str | None = Form(None)) -> Lesson:
-    lesson = store.create(file.file, file.filename or "lesson", date or None, topic or None)
+def create_lesson(file: UploadFile = File(...), date: str | None = Form(None), topic: str | None = Form(None),
+                  people: int | None = Form(None)) -> Lesson:
+    if people is not None and not 2 <= people <= 8:
+        raise HTTPException(422, "Число людей на записи — от 2 до 8")
+    lesson = store.create(file.file, file.filename or "lesson", date or None, topic or None, people)
     runner.enqueue(lesson.id)
     return lesson
 
@@ -47,3 +51,40 @@ def lesson_file(lesson_id: str, path: str) -> FileResponse:
     if not f.is_relative_to(root) or not f.is_file() or f.name == "state.json":
         raise HTTPException(404, "Файл не найден")
     return FileResponse(f)
+
+
+@router.put("/{lesson_id}/speakers")
+def label_speakers(lesson_id: str, labels: dict[str, speakers.SpeakerLabel]) -> Lesson:
+    lesson = _get(lesson_id)
+    if lesson.steps["voices"].status != "done":
+        raise HTTPException(409, "Голоса ещё не найдены")
+    if lesson.steps["clips"].status in ("running", "done"):
+        raise HTTPException(409, "Разбор уже идёт — разметку голосов менять нельзя")
+    known = {v["speaker_id"] for v in store.read_json(lesson_id, "voices.json")}
+    if set(labels) - known:
+        raise HTTPException(422, "Неизвестный голос")
+    students: dict[str, list[str]] = {}
+    teacher: list[str] = []
+    for spk, lab in labels.items():
+        if lab.role == "student":
+            name = (lab.name or "").strip()
+            if not name:
+                raise HTTPException(422, "У студента должно быть имя")
+            students.setdefault(name, []).append(spk)
+        elif lab.role == "teacher":
+            teacher.append(spk)
+    if not students:
+        raise HTTPException(422, "Отметьте хотя бы одного студента")
+    store.write_json(lesson_id, "speakers.json", {
+        "labels": {k: v.model_dump() for k, v in labels.items()}, "students": students, "teacher": teacher})
+    d = store.dir(lesson_id)
+    for name, spks in students.items():
+        for spk in spks:
+            speakers.memory.remember(name, spk, d)
+    for spk in teacher:
+        speakers.memory.remember(speakers.TEACHER, spk, d)
+    lesson = store.get(lesson_id)
+    lesson.students = list(students)
+    store.save_state(lesson)
+    runner.enqueue(lesson_id)
+    return lesson

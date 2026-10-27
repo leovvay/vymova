@@ -30,7 +30,7 @@ def _state_file(lesson_id: str) -> Path:
     return dir(lesson_id) / "state.json"
 
 
-def create(file: BinaryIO, filename: str, date: str | None, topic: str | None) -> Lesson:
+def create(file: BinaryIO, filename: str, date: str | None, topic: str | None, people: int | None = None) -> Lesson:
     day = date or date_cls.today().isoformat()
     base = f"{day}_{slugify(topic or '')}"
     with _lock:
@@ -43,7 +43,8 @@ def create(file: BinaryIO, filename: str, date: str | None, topic: str | None) -
         ext = Path(filename).suffix.lower() or ".bin"
         with open(d / f"source{ext}", "wb") as out:
             shutil.copyfileobj(file, out, length=1024 * 1024)
-        lesson = Lesson(id=lesson_id, date=day, topic=topic or "", source=f"source{ext}", created_at=datetime.now())
+        lesson = Lesson(id=lesson_id, date=day, topic=topic or "", people=people, source=f"source{ext}",
+                        created_at=datetime.now())
         save_state(lesson)
     return lesson
 

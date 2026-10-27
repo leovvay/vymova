@@ -24,6 +24,11 @@ def to_mp3(src: Path, dst: Path, bitrate: str = "64k") -> None:
     _run(["-i", str(src), "-vn", "-ac", "1", "-ar", "16000", "-b:a", bitrate], dst, "mp3")
 
 
+def to_speech_m4a(src: Path, dst: Path) -> None:
+    """Аудио для расшифровки: без видео, моно, достаточно качественно для Scribe."""
+    _run(["-i", str(src), "-vn", "-ac", "1", "-ar", "24000", "-c:a", "aac", "-b:a", "64k"], dst, "mp4")
+
+
 def cut(src: Path, start: float, end: float, dst: Path) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
     _run(["-ss", f"{max(0.0, start):.2f}", "-to", f"{end:.2f}", "-i", str(src), "-ac", "1", "-ar", "16000",

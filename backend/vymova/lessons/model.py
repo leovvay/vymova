@@ -29,6 +29,7 @@ class Lesson(BaseModel):
     id: str
     date: str
     topic: str = ""
+    people: int | None = None
     source: str
     created_at: datetime
     steps: dict[str, StepState] = Field(default_factory=lambda: {s: StepState() for s in STEPS})
