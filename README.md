@@ -2,6 +2,10 @@
 
 Pronunciation, grammar and vocabulary error analysis for students of Ukrainian, from a lesson recording.
 
+<p align="center">
+  <img src="docs/images/report-confirmed.png" width="760" alt="Report page: confirmed pronunciation patterns for one student">
+</p>
+
 The tutor uploads a recording of an online group lesson and marks who is who. 15–20 minutes later they get
 **one PDF for the whole lesson**. For each student it covers:
 - which sounds they get wrong (confirmed by two independent checks);
@@ -15,6 +19,83 @@ The app runs on the tutor's own computer. Recordings go only to the speech servi
 (ElevenLabs and Google Gemini).
 
 > The app's interface and reports are in Russian. They are written for the tutor and students.
+> All screenshots below use a made-up demo lesson; the names and recordings are not real.
+
+## What the tutor sees
+
+| 1. Upload a lesson | 2. Mark who is who |
+|---|---|
+| <img src="docs/images/ui-upload.png" alt="Upload screen with past lessons"> | <img src="docs/images/ui-speakers.png" alt="Voice labelling: speech minutes, audio samples, role per voice"> |
+| Drag in the recording. Optionally add the date, topic and number of people. | Listen to two samples per voice and mark the tutor and each student. Names are remembered for next time. |
+| **3. Processing** | **4. Done** |
+| <img src="docs/images/ui-progress.png" alt="Processing: each step with its measured duration"> | <img src="docs/images/ui-result.png" alt="Result card: main point per student, PDF and lesson folder"> |
+| Every step shows how long it took. The tab can be closed; processing continues. | The main point per student, the PDF, and the lesson folder (PDF, transcript, audio clips). |
+
+<details>
+<summary>Settings</summary>
+
+<img src="docs/images/ui-settings.png" width="760" alt="Settings: API keys, paid-tier warning, acoustic check toggle">
+
+The keys are entered once and stored only in the app's folder on this computer.
+</details>
+
+## What the report contains
+
+**Group summary and each student's top 5.** Shared mistakes are a ready topic for the next lesson.
+
+<img src="docs/images/report-summary.png" width="760" alt="Report: group summary and a student's top 5">
+
+**Acoustic check without language models.** Phoneme recognisers turn the audio straight into IPA. The result is
+compared with dictionary pronunciation and with how often the recognisers distort the same sound in native speech.
+
+<img src="docs/images/report-acoustic.png" width="760" alt="Report: acoustic check table">
+
+**Appendix: every utterance, phonetically.**
+- Under each word: the IPA from both acoustic models.
+- Below: both blind Gemini transcriptions.
+- The clip number opens the audio of that utterance.
+
+<img src="docs/images/report-appendix.png" width="760" alt="Report appendix: per-word IPA and blind transcriptions">
+
+## How it works
+
+```mermaid
+flowchart LR
+  rec([Lesson recording]) --> scribe[ElevenLabs Scribe<br/>verbatim transcript<br/>+ speakers]
+  scribe --> who{Tutor marks<br/>who is who}
+  who --> clips[Clips per student]
+  clips --> pass1[Gemini first pass<br/>candidate errors]
+  clips --> blind[Blind check<br/>2 Gemini models<br/>phonetic transcription]
+  clips --> ac[Acoustic layer<br/>wav2vec2 → IPA]
+  wik[(Wiktionary IPA)] --> ac
+  cal[(FLEURS native<br/>calibration)] --> ac
+  pass1 --> judge[Adjudicator<br/>quotes checked<br/>mechanically]
+  blind --> judge
+  ac --> judge
+  judge --> lang[Grammar and<br/>vocabulary]
+  lang --> sum[Group summary]
+  sum --> pdf[[One PDF<br/>per lesson]]
+```
+
+Each step writes its own result to the lesson folder. If the PC sleeps or the app restarts, processing resumes from
+the first unfinished step, and finished (paid) steps are never repeated.
+
+### When is a mistake "confirmed"?
+
+A single listening model invents mistakes. Vymova therefore treats every first-pass finding as a hypothesis:
+
+```mermaid
+flowchart TD
+  cand[Candidate from the first pass] --> quotes{Verbatim quotes found in<br/>BOTH blind transcriptions<br/>of the same clip?}
+  quotes -- both --> conf[✔ Confirmed]
+  quotes -- one --> acou{Acoustic layer<br/>confirms it?}
+  acou -- yes --> likely[Likely]
+  acou -- no --> open[Open question]
+  quotes -- none --> rej[Rejected]
+```
+
+The blind models never see the candidates; they only write down what they hear. The adjudicator has to cite both
+transcriptions word for word, and code checks that the quotes exist and match each other.
 
 ## Install (Windows)
 
@@ -32,22 +113,6 @@ The app runs on the tutor's own computer. Recordings go only to the speech servi
 
 Lessons and PDFs are stored in `Documents\Vymova\lessons`. To update the app, run `vymova-start.bat` again. It never
 interrupts a lesson that is being processed.
-
-## How it works
-
-1. **Verbatim transcription.** ElevenLabs Scribe keeps the mistakes and separates the speakers.
-2. **Who is who.** The tutor confirms which voice is whose. Each student's utterances are cut into clips.
-   - Voices are remembered between lessons, so names are suggested next time.
-3. **First pass.** Gemini listens to the whole lesson and flags candidate errors.
-4. **Blind check.** Two different Gemini models each write a narrow phonetic transcription of every clip. Neither
-   knows what to look for.
-   - A pattern is **confirmed** only if both models heard it.
-   - The adjudicator's quotes from both transcriptions are validated mechanically.
-5. **Acoustic layer, no language model.**
-   - wav2vec2 phoneme recognisers turn audio into IPA.
-   - The IPA is compared with dictionary pronunciation (Wiktionary).
-   - Results are corrected for how the recognisers distort native speech; the calibration uses FLEURS.
-6. **Report.** Grammar, vocabulary, a group summary — and the PDF.
 
 ## Development
 
