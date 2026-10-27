@@ -27,7 +27,7 @@ async def _lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Vymova", lifespan=_lifespan)
-    # программа только для этого компьютера: чужие сайты не могут ни читать её, ни запускать платные шаги
+    # the app is for this computer only: other websites can neither read it nor trigger paid steps
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
 
     @app.middleware("http")

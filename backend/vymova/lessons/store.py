@@ -22,7 +22,7 @@ def slugify(text: str) -> str:
     return s or "lesson"
 
 
-def dir(lesson_id: str) -> Path:  # noqa: A001 - имя из плана
+def dir(lesson_id: str) -> Path:  # noqa: A001 - name from the plan
     return paths().lessons_dir / lesson_id
 
 
@@ -66,7 +66,7 @@ def exists(lesson_id: str) -> bool:
     return _state_file(lesson_id).exists()
 
 
-def list() -> list[Lesson]:  # noqa: A001 - имя из плана
+def list() -> list[Lesson]:  # noqa: A001 - name from the plan
     out = []
     for f in paths().lessons_dir.glob("*/state.json"):
         try:

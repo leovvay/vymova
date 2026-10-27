@@ -9,7 +9,7 @@ URL = "https://api.elevenlabs.io/v1/speech-to-text"
 
 
 def transcribe(path: Path, key: str, num_speakers: int | None = None) -> dict:
-    """Дословная расшифровка Scribe v2 со спикерами. Язык не задаётся, чтобы не «украинизировать» вставки."""
+    """Verbatim Scribe v2 transcription with speakers. The language is not set, to avoid "Ukrainising" inserted phrases."""
     if not key:
         raise StepError("Не задан ключ ElevenLabs. Откройте «Настройки».", retry=False)
     data = {"model_id": "scribe_v2", "diarize": "true", "timestamps_granularity": "word", "tag_audio_events": "true"}
@@ -30,5 +30,5 @@ def transcribe(path: Path, key: str, num_speakers: int | None = None) -> dict:
     out = r.json()
     if not out.get("words"):
         raise StepError("ElevenLabs не нашёл речи в записи.", retry=False)
-    json.dumps(out)  # проверка сериализуемости до записи
+    json.dumps(out)  # check serialisability before writing
     return out

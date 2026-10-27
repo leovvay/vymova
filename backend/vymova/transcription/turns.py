@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 FILL = {"угу", "окей", "е", "е-е", "е-е-е", "ем", "а-а", "а-а-а", "м-м", "ну", "так"}
-MAX_WORD = 3.0  # Scribe иногда растягивает слово через паузу
+MAX_WORD = 3.0  # Scribe sometimes stretches a word across a pause
 
 
 @dataclass

@@ -1,4 +1,4 @@
-"""Голосовые отпечатки (x-vector WavLM-SV) для подсказки имён между уроками."""
+"""Voice fingerprints (WavLM-SV x-vector) for suggesting names across lessons."""
 import json
 import threading
 from pathlib import Path
@@ -41,7 +41,7 @@ def _load():
 
 
 def embed(wav16k: Path, segments: list[tuple[float, float]], fe=None, model=None) -> list[float] | None:
-    """Среднее нормированных x-vector по сегментам; None, если речи нет."""
+    """Mean of the normalised x-vectors across segments; None if there is no speech."""
     if not segments:
         return None
     import soundfile as sf
@@ -64,7 +64,7 @@ def embed(wav16k: Path, segments: list[tuple[float, float]], fe=None, model=None
 
 
 def lesson_embeddings(lesson_dir: Path, transcript: dict, speaker_ids: list[str]) -> dict[str, list[float]]:
-    """Считает и кэширует отпечатки голосов урока в voice_embeddings.json."""
+    """Computes and caches the lesson's voice fingerprints in voice_embeddings.json."""
     cache = lesson_dir / "voice_embeddings.json"
     if cache.exists():
         return json.loads(cache.read_text(encoding="utf-8"))

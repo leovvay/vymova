@@ -1,4 +1,4 @@
-"""Грамматика, интерференция, сильные стороны, упражнения и топ-5 по каждому студенту."""
+"""Grammar, interference, strengths, exercises and a top 5 per student."""
 import json
 from pathlib import Path
 

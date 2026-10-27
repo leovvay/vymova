@@ -1,4 +1,4 @@
-"""Регистрация шагов конвейера: связывает урок с функциями предметных областей."""
+"""Pipeline step registration: connects the lesson to the domain functions."""
 from .. import audio, settings, speakers, transcription
 from .. import gemini, report
 from ..config import paths
@@ -34,7 +34,7 @@ def _speakers(lesson: Lesson) -> dict:
 
 
 def student_folders(lesson: Lesson) -> dict[str, str]:
-    """{имя студента: папка} — стабильно, без коллизий."""
+    """{student name: folder} — stable, no collisions."""
     out: dict[str, str] = {}
     for name in _speakers(lesson)["students"]:
         base, n, folder = store.slugify(name), 1, store.slugify(name)

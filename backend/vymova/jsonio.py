@@ -1,4 +1,4 @@
-"""Атомарная запись JSON: файл появляется только целиком (артефакт = шаг готов)."""
+"""Atomic JSON write: the file appears only in full (artifact = step done)."""
 import json
 import os
 from pathlib import Path

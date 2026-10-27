@@ -1,4 +1,4 @@
-"""Достаточно ли украинской речи у студента для разбора."""
+"""Whether the student has enough Ukrainian speech to analyse."""
 import json
 from pathlib import Path
 
@@ -6,8 +6,8 @@ MIN_SPEECH_SEC, MIN_UKR_CLIPS = 30.0, 10
 
 
 def low_speech(lesson_dir: Path, folder: str) -> tuple[bool, float]:
-    """(мало_речи, секунд_речи). Реплика «не украинская», если обе слепые записи отнесли к другим языкам
-    больше половины её слов."""
+    """(too_little_speech, speech_seconds). A turn is "not Ukrainian" if both blind transcriptions assigned
+    more than half of its words to other languages."""
     manifest = json.loads((lesson_dir / "clips" / folder / "manifest.json").read_text(encoding="utf-8"))
     speech = sum(c["end"] - c["start"] for c in manifest)
     pair = (json.loads((lesson_dir / "blind" / "index.json").read_text(encoding="utf-8")).get("pair") or []) \

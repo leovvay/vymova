@@ -1,131 +1,131 @@
-# Vymova — разбор ошибок студентов по записи урока украинского
+# Vymova — analyzing student mistakes from a Ukrainian lesson recording
 
-Статус: черновик дизайна, ждёт одобрения Влада. Дата: 2026-10-26.
-Пометки: **[Влад]** — решил Влад, **[моё]** — решение автора дизайна, его можно оспорить, **[догадка]** — не подтверждено.
+Status: approved by Vlad (2026-10-27). Date: 2026-10-26.
+Markers: **[Vlad]** — decided by Vlad, **[mine]** — the design author's decision, open to challenge, **[guess]** — unconfirmed.
 
-## 1. Зачем
+## 1. Why
 
-Репетитор украинского ведёт групповые уроки в Google Meet и записывает их. Ему нужно **собрать ошибки студентов**, а не получить чистую расшифровку. Обычные транскрибаторы ошибки «исправляют», поэтому сейчас репетитор выписывает их вручную. Репетитор — не носитель языка [Влад].
+A Ukrainian tutor teaches group lessons in Google Meet and records them. The tutor needs to **collect the students' mistakes**, not get a clean transcript. Ordinary transcribers "correct" mistakes, so right now the tutor writes them down by hand. The tutor is not a native speaker [Vlad].
 
-Прототип этого разбора уже сделан вручную для одного урока (55 минут, 3 голоса: репетитор, Влад и ещё один студент). Результат — 24-страничный PDF: `~/Downloads/ua-lesson-2026-10-26/razbor-oshibok-2026-10-26.pdf`. Его структура и стиль — визуальный эталон отчёта. Скрипты прототипа — `docs/prototype/`.
+A prototype of this analysis has already been made by hand for one lesson (55 minutes, 3 voices: the tutor, Vlad and one more student). The result is a 24-page PDF: `~/Downloads/ua-lesson-2026-10-26/razbor-oshibok-2026-10-26.pdf`. Its structure and style are the visual reference for the report. The prototype scripts are in `docs/prototype/`.
 
-## 2. Кто пользуется и как
+## 2. Who uses it and how
 
-Пользователь — репетитор, на своём Windows-компьютере [Влад]. Технический уровень: умеет пользоваться Claude Code и Notion [догадка, по записи урока], но ставить Python, разбираться с командной строкой не должен.
+The user is the tutor, on their own Windows computer [Vlad]. Technical level: can use Claude Code and Notion [guess, from the lesson recording], but should not have to install Python or deal with a command line.
 
-Поток (экраны согласованы с Владом по черновым макетам):
-1. **Загрузка.** Двойной клик по `запустить.bat` → открывается страница в браузере. Перетащить запись (mp4/m4a/mp3/wav), опционально дата и тема. Ниже — прошлые уроки.
-2. **Кто есть кто.** Через ~2 минуты: найденные голоса, сколько каждый говорил, два коротких фрагмента прослушать. Репетитор отмечает: «репетитор», «студент: имя», «пропустить». Имена запоминаются, в следующий раз программа предлагает их сама — остаётся подтвердить.
-3. **Обработка.** Шаги с прогрессом. Вкладку можно закрыть — работа продолжится.
-4. **Результат.** Одна карточка урока: главные ошибки каждого студента одной строкой, «Открыть PDF», «Папка урока».
+The flow (screens agreed with Vlad from draft mockups):
+1. **Upload.** Double-click `vymova-start.bat` → a page opens in the browser. Drag in the recording (mp4/m4a/mp3/wav), optionally a date and a topic. Past lessons are listed below.
+2. **«Кто есть кто» (Who is who).** After ~2 minutes: the voices found, how much each one spoke, two short fragments to listen to. The tutor marks each one: «репетитор» (tutor), «студент: имя» (student: name), «пропустить» (skip). Names are remembered, and next time the program suggests them itself — all that is left is to confirm.
+3. **Processing.** Steps with progress. The tab can be closed — the work continues.
+4. **Result.** A single lesson card: each student's main mistakes in one line, «Открыть PDF» (Open PDF), «Папка урока» (Lesson folder).
 
-Плюс экран «Настройки»: ключи ElevenLabs и Gemini, вводятся один раз.
+Plus the «Настройки» (Settings) screen: ElevenLabs and Gemini keys, entered once.
 
-## 3. Цели
+## 3. Goals
 
-- Запись урока на входе → **один общий PDF на урок** со всеми студентами [Влад: «не нужен на каждого, можно общий»].
-- Качество разбора как в прототипе: ошибка попадает в «подтверждено», только если её независимо подтвердили разные слои проверки.
-- Запуск на любом Windows-ПК через Docker Desktop и `.bat`, без командной строки [Влад: «давай докер»].
-- Всё хранится на диске репетитора: PDF, расшифровка, аудиоклипы реплик.
+- A lesson recording in → **one combined PDF per lesson** covering all students [Vlad: "no need for one per student, a combined one is fine"].
+- Analysis quality as in the prototype: a mistake goes into «подтверждено» (confirmed) only if it was independently confirmed by different layers of checking.
+- Runs on any Windows PC via Docker Desktop and a `.bat`, no command line [Vlad: "let's go with Docker"].
+- Everything is stored on the tutor's disk: PDF, transcript, audio clips of utterances.
 
-## 4. Не цели
+## 4. Non-goals
 
-- Отдельные PDF на каждого студента [Влад].
-- Разбор речи самого репетитора [Влад, подтвердил при пересказе].
-- Страница «Как получено и ограничения» в PDF [Влад: «М не надо»].
-- Облачный сервис. Тот же Docker-образ можно выложить на сервер, но это запасной вариант, не цель [моё].
-- Нативная Windows-программа (.exe) [Влад выбрал Docker].
-- Обучение собственной модели, работа в реальном времени, мобильная версия [моё].
+- Separate PDFs for each student [Vlad].
+- Analysis of the tutor's own speech [Vlad, confirmed on recap].
+- A «Как получено и ограничения» (How this was obtained and limitations) page in the PDF [Vlad: "no need for M"].
+- A cloud service. The same Docker image could be put on a server, but that is a fallback, not a goal [mine].
+- A native Windows program (.exe) [Vlad chose Docker].
+- Training a custom model, real-time operation, a mobile version [mine].
 
-## 5. Анти-цели (что сделает продукт провалом, даже если он работает)
+## 5. Anti-goals (what would make the product a failure even if it works)
 
-Влад прямо не ответил; это вывод из разговора [догадка]:
-- **Выдуманные ошибки.** Один проход Gemini завышает уверенность и придумывает ошибки (в прототипе: «наоборот» вместо реального «наугад»). Отчёт, которому нельзя верить, хуже ручного.
-- **Ошибки, «исправленные» расшифровкой.** Весь смысл — поймать то, что транскрибаторы прячут.
-- **Репетитору нужна командная строка или техподдержка** для обычного урока.
-- **Ключи репетитора утекли**: в лог, в образ, в репозиторий.
+Vlad did not answer directly; this is inferred from the conversation [guess]:
+- **Invented mistakes.** A single Gemini pass inflates confidence and makes up mistakes (in the prototype: «наоборот» instead of the real «наугад»). A report that cannot be trusted is worse than doing it by hand.
+- **Mistakes "corrected" by the transcript.** The whole point is to catch what transcribers hide.
+- **The tutor needing a command line or tech support** for an ordinary lesson.
+- **The tutor's keys leaking**: into a log, an image, a repository.
 
-## 6. Ограничения
+## 6. Constraints
 
-- ОС: Windows 10/11 + Docker Desktop (WSL2). Только CPU, видеокарта не предполагается.
-- Ключи: собственные ключи репетитора — ElevenLabs и Gemini; платит он [Влад, при пересказе]. Ключи Влада не используются и не попадают в код.
-- Язык отчёта — русский [Влад, при пересказе]. Язык интерфейса — русский [моё].
-- Студенты — носители разных языков (у Влада — русский, белорусский, польский). Интерференция определяется по факту, а не захардкожена под одного студента [моё].
-- Репетитор **не эталон** произношения. Его поправки на уроке — полезный сигнал («исправлено на уроке»), но не истина. В промптах Gemini репетитор не называется носителем.
-- Код — новый репозиторий на личном GitHub Влада `leovvay` [Влад]. Коммиты от личной identity (`41321050+leovvay@users.noreply.github.com`).
-- Правила Влада для кода: разбивка по предметным областям (feature-папки, интерфейсы в отдельных файлах, `index.ts`/`__init__` как фасад), файл больше ~1500 строк — сигнал к декомпозиции, тесты пишутся только если Влад попросит, UI проектируется через `/impeccable` (Opus).
-- Записи уроков содержат голоса третьих лиц (студентов). Их нельзя коммитить в репозиторий и нельзя использовать как фикстуры в публичном месте.
+- OS: Windows 10/11 + Docker Desktop (WSL2). CPU only, no GPU assumed.
+- Keys: the tutor's own keys — ElevenLabs and Gemini; the tutor pays [Vlad, on recap]. Vlad's keys are not used and do not end up in the code.
+- The report language is Russian [Vlad, on recap]. The UI language is Russian [mine].
+- Students are native speakers of different languages (for Vlad: Russian, Belarusian, Polish). Interference is detected from the evidence, not hard-coded for one student [mine].
+- The tutor is **not a reference** for pronunciation. Their corrections during the lesson are a useful signal («исправлено на уроке» (corrected in the lesson)), but not the truth. In the Gemini prompts the tutor is not called a native speaker.
+- The code lives in a new repository on Vlad's personal GitHub `leovvay` [Vlad]. Commits come from the personal identity (`41321050+leovvay@users.noreply.github.com`).
+- Vlad's rules for code: split by domain (feature folders, interfaces in separate files, `index.ts`/`__init__` as a facade), a file over ~1500 lines is a signal to decompose, tests are written only if Vlad asks, the UI is designed via `/impeccable` (Opus).
+- Lesson recordings contain the voices of third parties (the students). They must not be committed to the repository or used as fixtures anywhere public.
 
-## 7. Конвейер разбора
+## 7. Analysis pipeline
 
-Шаги и то, что прототип уже показал (подробности — `docs/prototype/`).
+The steps and what the prototype has already shown (details in `docs/prototype/`).
 
-1. **Расшифровка — ElevenLabs Scribe v2.** `diarize=true`, `timestamps_granularity=word`, **без** `language_code` (иначе русские и польские вставки «украинизируются»), `tag_audio_events=true`. Известные артефакты: числа пишет цифрами; отдельные слова нормализует (sto procent → «стопудово», верно → «вірно», zajęcie → «заняття»); иногда растягивает слово через паузу на минуту — длительность больше 3 с обрезать.
-2. **Кто есть кто.** Голоса из диаризации → подтверждение репетитором (экран 2). Реплики каждого студента режутся на клипы по границам слов: склейка соседних слов одного спикера при паузе меньше 1.5 с, отступы −0.3 / +0.4 с, реплики только из филлеров пропускаются.
-3. **Первый проход — Gemini, весь урок + расшифровка.** Даёт кандидатов в ошибки произношения и места, где расшифровка разошлась с речью. Сам по себе ненадёжен: всё помечает высокой уверенностью, тайм-коды плывут на ±1 мин. Используется только как список кандидатов. Промпт — `docs/prototype/prompts/pass1.txt`, правки: репетитор не носитель, языки студента не захардкожены.
-4. **Слепая проверка — две модели Gemini по клипам.** Все клипы студента идут одним запросом (в прототипе 99 клипов, около 7 минут аудио, inline). Модели не знают гипотез и записывают узкую фонетическую транскрипцию кириллицей: ударение, мягкость, безударные гласные, конечные согласные. **Подтверждено = обе модели услышали одно и то же.** Это главный фильтр против выдуманных ошибок. В прототипе — `gemini-4-argon` и `gemini-3.1-pro-preview`.
-   - **Выбор моделей [моё].** В релиз зашит ранжированный список пар моделей, в настройках его можно переопределить. При запуске программа сверяет список с тем, что доступно ключу. Если двух разных сильных моделей нет, блок «подтверждено» не формируется: всё уходит в «под вопросом», и отчёт явно об этом предупреждает. Одна модель дважды за независимую проверку не считается.
-   - **Как из кандидатов получается «подтверждено» [моё].** В прототипе это делал человек, сверяя кандидатов первого прохода с обеими слепыми записями. В программе это отдельный шаг-арбитр: LLM получает кандидатов (первый проход), обе слепые записи и акустику, и по каждому кандидату обязан сослаться на конкретные клипы и привести фрагменты из *обеих* слепых записей. Затем код механически проверяет: клипы существуют, цитаты дословно есть в соответствующих записях. Кандидат без подтверждённых цитат из обеих записей в «подтверждено» не попадает. Акустика может повысить кандидата из «возможно» в «вероятно» или пометить «не решено», но сама по себе ошибку в «подтверждено» не добавляет — как в прототипе.
-5. **Акустика — без LLM, локально.** `facebook/wav2vec2-lv-60-espeak-cv-ft` и `facebook/wav2vec2-xlsr-53-espeak-cv-ft` переводят каждую реплику в IPA. Фоны раскладываются по словам через тайм-коды Scribe. Сравнение:
-   - **Эталон произношения** — ожидаемое IPA слова с ударением от языковой модели, сверенное со словарём (Викисловарь), с кэшем по словам [Влад: «языковая модель уже знает фонетический эталон»].
-   - **Калибровка модели [моё].** Распознаватель систематически ошибается даже на носителях (пишет [сорак] вместо [сорок]). Один раз, на этапе разработки, его прогоняют по записям носителей (Common Voice uk, CC0), считают типичные искажения и кладут таблицу в приложение. Ошибкой считается только отклонение сверх того, что модель «нормально» искажает у носителей.
-   - **espeak-ng `uk` эталоном не использовать.** Он сам делает проверяемые ошибки: «років» → [рокіф], ударение «ме́ні», редукция в «-десят».
-   - **Речь репетитора эталоном не использовать.**
-6. **Грамматика и лексика — LLM по тексту каждого студента.** Опирается на слепо подтверждённые слова. Даёт три таблицы: грамматика (время, сказал, надо, правило), русизмы, полонизмы. По сути это «интерференция» с разбивкой по языку-источнику. Слова, которые расшифровка нормализовала, а слепая проверка показала реальное произношение, помечаются ✓. В прототипе этот шаг делался вручную.
-7. **Сводка по группе.** Ошибки, общие для нескольких студентов, — тема следующего урока. Плюс по 3 главных ошибки на каждого [догадка автора, Влад не вычеркнул].
-8. **PDF.** HTML → PDF через headless Chromium внутри контейнера.
+1. **Transcription — ElevenLabs Scribe v2.** `diarize=true`, `timestamps_granularity=word`, **without** `language_code` (otherwise Russian and Polish insertions get "Ukrainianized"), `tag_audio_events=true`. Known artifacts: it writes numbers as digits; it normalizes some words (sto procent → «стопудово», верно → «вірно», zajęcie → «заняття»); it sometimes stretches a word across a pause for a minute — durations over 3 s must be trimmed.
+2. **Who is who.** Voices from diarization → confirmation by the tutor (screen 2). Each student's utterances are cut into clips at word boundaries: adjacent words of one speaker are merged when the pause is under 1.5 s, padding −0.3 / +0.4 s, utterances consisting only of fillers are skipped.
+3. **First pass — Gemini, whole lesson + transcript.** It produces candidates for pronunciation mistakes and for places where the transcript diverged from the speech. It is unreliable on its own: it marks everything with high confidence, and timecodes drift by ±1 min. It is used only as a list of candidates. Prompt — `docs/prototype/prompts/pass1.txt`, with these edits: the tutor is not a native speaker, the student's languages are not hard-coded.
+4. **Blind check — two Gemini models over the clips.** All of a student's clips go in one request (in the prototype 99 clips, about 7 minutes of audio, inline). The models do not know the hypotheses and write a narrow phonetic transcription in Cyrillic: stress, softness, unstressed vowels, final consonants. **Confirmed = both models heard the same thing.** This is the main filter against invented mistakes. In the prototype — `gemini-4-argon` and `gemini-3.1-pro-preview`.
+   - **Model selection [mine].** A ranked list of model pairs is built into the release and can be overridden in settings. At startup the program checks the list against what the key can access. If two different strong models are not available, the «подтверждено» block is not produced: everything goes into «под вопросом» (under question), and the report explicitly warns about this. One model used twice does not count as an independent check.
+   - **How a candidate becomes «подтверждено» [mine].** In the prototype a human did this, matching the first-pass candidates against both blind transcriptions. In the program it is a separate adjudicator step: the LLM receives the candidates (first pass), both blind transcriptions and the acoustics, and for each candidate it must cite specific clips and quote fragments from *both* blind transcriptions. Then code mechanically checks that the clips exist and that the quotes appear verbatim in the corresponding transcriptions. A candidate without verified quotes from both transcriptions does not make it into «подтверждено». Acoustics may raise a candidate from «возможно» (possible) to «вероятно» (likely) or mark it «не решено» (unresolved), but by itself never adds a mistake to «подтверждено» — as in the prototype.
+5. **Acoustics — no LLM, local.** `facebook/wav2vec2-lv-60-espeak-cv-ft` and `facebook/wav2vec2-xlsr-53-espeak-cv-ft` convert each utterance to IPA. Phones are assigned to words via the Scribe timecodes. Comparison:
+   - **Pronunciation reference** — the expected IPA of the word with stress from a language model, checked against a dictionary (Wiktionary), cached per word [Vlad: "the language model already knows the phonetic reference"].
+   - **Model calibration [mine].** The recognizer makes systematic errors even on native speakers (it writes [сорак] instead of [сорок]). Once, at development time, it is run over native-speaker recordings (Common Voice uk, CC0), the typical distortions are counted, and the resulting table is shipped in the app. A mistake counts only if it deviates beyond what the model "normally" distorts for native speakers.
+   - **Do not use espeak-ng `uk` as the reference.** It makes verifiable mistakes itself: «років» → [рокіф], stress «ме́ні», reduction in «-десят».
+   - **Do not use the tutor's speech as the reference.**
+6. **Grammar and vocabulary — an LLM over each student's text.** It relies on the words confirmed by the blind check. It produces three tables: grammar (time, said, should be, rule), Russianisms, Polonisms. In essence this is "interference" broken down by source language. Words that the transcript normalized but the blind check showed were actually pronounced are marked ✓. In the prototype this step was done by hand.
+7. **Group summary.** Mistakes shared by several students are the topic of the next lesson. Plus the 3 main mistakes for each student [the author's guess, Vlad did not strike it].
+8. **PDF.** HTML → PDF via headless Chromium inside the container.
 
-## 8. Отчёт — один PDF на урок
+## 8. The report — one PDF per lesson
 
-1. Обложка: дата, тема, длительность, студенты.
-2. Сводка по группе.
-3. По разделу на каждого студента, как в прототипе:
-   - топ-5 к следующему уроку;
-   - произношение, подтверждено: карточки с паттерном, примерами, тайм-кодами, «исправлено на уроке» где было;
-   - акустическая проверка: таблица «что проверяли / студент / эталон / итог»;
-   - осталось под вопросом;
-   - грамматика;
-   - лексика: русизмы и полонизмы;
-   - что получилось хорошо;
-   - что тренировать.
-4. Приложения, по студентам:
-   - полная фонетическая расшифровка всех реплик: слово, IPA двух акустических моделей, две слепые записи Gemini, подсветка проверяемых слов, номер реплики — ссылка на её аудиоклип;
-   - каждое проверенное слово против эталона.
+1. Cover: date, topic, duration, students.
+2. Group summary.
+3. A section for each student, as in the prototype:
+   - top 5 for the next lesson;
+   - pronunciation, confirmed: cards with the pattern, examples, timecodes, «исправлено на уроке» where applicable;
+   - acoustic check: a table «что проверяли / студент / эталон / итог» (what was checked / student / reference / result);
+   - still under question;
+   - grammar;
+   - vocabulary: Russianisms and Polonisms;
+   - what went well;
+   - what to practice.
+4. Appendices, per student:
+   - full phonetic transcript of all utterances: the word, IPA from the two acoustic models, the two blind Gemini transcriptions, highlighting of the checked words, the utterance number — a link to its audio clip;
+   - every checked word against the reference.
 
-Без страницы методики. Визуальный эталон — PDF прототипа (см. §1). Его исходный HTML со всем CSS: `~/Downloads/ua-lesson-2026-10-26/report.html`.
+No methodology page. The visual reference is the prototype PDF (see §1). Its source HTML with all the CSS: `~/Downloads/ua-lesson-2026-10-26/report.html`.
 
-**Критерий качества [моё].** Эталонный прогон — урок 2026-10-26 (`~/Downloads/6576c256-edf0-4ca8-be0d-a50e0ded3eca.mp4`). Программа на нём должна:
-- найти подтверждённые паттерны из `~/Downloads/ua-lesson-2026-10-26/errors.md`;
-- **не** поднять в «подтверждено» три кандидата, отклонённые в прототипе.
+**Quality criterion [mine].** The reference run is the lesson of 2026-10-26 (`~/Downloads/6576c256-edf0-4ca8-be0d-a50e0ded3eca.mp4`). On it the program must:
+- find the confirmed patterns from `~/Downloads/ua-lesson-2026-10-26/errors.md`;
+- **not** raise to «подтверждено» the three candidates rejected in the prototype.
 
-Запись используется только локально как фикстура и в репозиторий не коммитится.
+The recording is used only locally as a fixture and is not committed to the repository.
 
-## 9. Упаковка и запуск
+## 9. Packaging and launch
 
-- Docker-образ в GHCR под `leovvay`, публичный (см. §12).
-- `запустить.bat` [моё]: проверяет, что Docker Desktop запущен, иначе даёт понятное сообщение по-русски → `docker pull` (обновления приходят сами) → `docker run` с портом только на `127.0.0.1` → открывает браузер.
-- Папка данных на диске Windows монтируется в контейнер, например `%USERPROFILE%\Documents\Vymova\`. Там уроки (`<дата>_<тема>/`: PDF, расшифровка, клипы), настройки, ключи, память голосов [моё].
-- Ключи хранятся только в папке данных, не в образе. В логи не пишутся.
-- Обработка идёт в фоне на сервере. Закрытая вкладка её не прерывает.
+- A Docker image on GHCR under `leovvay`, public (see §12).
+- `vymova-start.bat` [mine]: checks that Docker Desktop is running, otherwise gives a clear message in Russian → `docker pull` (updates arrive on their own) → `docker run` with the port bound to `127.0.0.1` only → opens the browser.
+- A data folder on the Windows disk is mounted into the container, for example `%USERPROFILE%\Documents\Vymova\`. It holds the lessons (`<date>_<topic>/`: PDF, transcript, clips), settings, keys, and voice memory [mine].
+- Keys are stored only in the data folder, not in the image. They are not written to logs.
+- Processing runs in the background on the server. Closing the tab does not interrupt it.
 
-## 10. На усмотрение исполнителя
+## 10. At the implementer's discretion
 
-- Стек веб-части: фреймворк бэкенда и фронтенда, очередь задач. Бэкенд, скорее всего, Python, потому что весь конвейер на Python.
-- Веса акустических моделей: вшить в образ или скачать при первом запуске; PyTorch CPU или ONNX Runtime (у lv-60 есть готовый ONNX).
-- Как программа «узнаёт» голоса между уроками: эмбеддинги спикеров или что-то проще.
-- Конкретные промпты слоёв 4 и 6, кэширование, повторы при сбоях API, продолжение после перезапуска контейнера.
-- Как именно калибровать акустику и считать порог отклонения.
-- Визуальный дизайн интерфейса — через `/impeccable`.
+- The web stack: backend and frontend frameworks, task queue. The backend is most likely Python, because the whole pipeline is in Python.
+- Acoustic model weights: bake into the image or download on first run; PyTorch CPU or ONNX Runtime (lv-60 has a ready-made ONNX).
+- How the program "recognizes" voices between lessons: speaker embeddings or something simpler.
+- The specific prompts for layers 4 and 6, caching, API retries, resuming after a container restart.
+- Exactly how to calibrate the acoustics and compute the deviation threshold.
+- The visual design of the interface — via `/impeccable`.
 
-## 11. Ожидаемые числа (по прототипу, требуют проверки)
+## 11. Expected numbers (from the prototype, need verification)
 
-- Время на 55-минутный урок: Scribe около 1 мин, Gemini первый проход около 3 мин, слепая проверка 1–3 мин на студента, акустика около 1 мин на Mac с MPS (на Windows CPU — в разы дольше), PDF секунды. Итого 15–20 минут [догадка].
-- Стоимость: ElevenLabs около 22 кредитов в минуту аудио плюс Gemini (первый проход около 130 тыс. токенов, слепая проверка 20–40 тыс. на модель и студента). Порядка $1–2 за урок [догадка, посчитать на реальных тарифах].
-- Объём речи студента за урок — 4–6 минут, около 100 реплик.
+- Time for a 55-minute lesson: Scribe about 1 min, Gemini first pass about 3 min, blind check 1–3 min per student, acoustics about 1 min on a Mac with MPS (several times longer on Windows CPU), PDF seconds. Total 15–20 minutes [guess].
+- Cost: ElevenLabs about 22 credits per minute of audio plus Gemini (first pass about 130k tokens, blind check 20–40k per model and student). On the order of $1–2 per lesson [guess, to be calculated at real rates].
+- A student's speech volume per lesson — 4–6 minutes, about 100 utterances.
 
-## 12. Решения после проверки документа
+## 12. Decisions after the document review
 
-- **Видимость [Влад]:** репозиторий публичный. Docker-образ в GHCR публичный, `docker pull` идёт без логина. `запустить.bat` отдаётся через GitHub Releases. Записи уроков, имена студентов и ключи в репозиторий не попадают.
-- **Компьютер репетитора [моё, Влад не уточнил]:** рассчитываем на Windows-ПК с 8 ГБ RAM, только CPU. Акустические модели грузятся по очереди, а не обе сразу. Акустический слой выключается в настройках. Если он выключен, отчёт строится на слепой проверке, а таблица акустики помечается «не запускалась».
-- **Ключи [моё]:** в настройках предупреждение, что нужен платный тариф Gemini. На бесплатном Google может использовать данные, а это голоса студентов. Ключи проверяются при сохранении тестовым запросом.
-- **Размер группы [моё]:** до 4 студентов на урок. Первый проход Gemini — один на урок, слепая проверка — отдельно на каждого студента.
+- **Visibility [Vlad]:** the repository is public. The Docker image on GHCR is public, and `docker pull` works without a login. `vymova-start.bat` is distributed through GitHub Releases. Lesson recordings, student names and keys do not go into the repository.
+- **The tutor's computer [mine, Vlad did not specify]:** we assume a Windows PC with 8 GB RAM, CPU only. The acoustic models are loaded one at a time, not both at once. The acoustic layer can be turned off in settings. If it is off, the report is built from the blind check, and the acoustics table is marked «не запускалась» (not run).
+- **Keys [mine]:** settings show a warning that a paid Gemini tier is required. On the free tier Google may use the data, and that data is the students' voices. Keys are validated on save with a test request.
+- **Group size [mine]:** up to 4 students per lesson. The Gemini first pass is one per lesson, the blind check is separate for each student.

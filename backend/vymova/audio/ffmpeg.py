@@ -25,7 +25,7 @@ def to_mp3(src: Path, dst: Path, bitrate: str = "64k") -> None:
 
 
 def to_speech_m4a(src: Path, dst: Path) -> None:
-    """Аудио для расшифровки: без видео, моно, достаточно качественно для Scribe."""
+    """Audio for transcription: no video, mono, good enough quality for Scribe."""
     _run(["-i", str(src), "-vn", "-ac", "1", "-ar", "24000", "-c:a", "aac", "-b:a", "64k"], dst, "mp4")
 
 

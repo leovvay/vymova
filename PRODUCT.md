@@ -22,7 +22,7 @@ Ordinary transcribers silently "correct" what students say. Vymova keeps the mis
 
 ## Operating Context
 
-- Runs locally in Docker Desktop on Windows; started from `запустить.bat`, opens in the browser at `127.0.0.1:8765`. No accounts, no auth.
+- Runs locally in Docker Desktop on Windows; started from `vymova-start.bat`, opens in the browser at `127.0.0.1:8765`. No accounts, no auth.
 - Flow: upload recording → wait ~2 min → mark who is who (teacher / student + name / skip) by listening to two short samples per voice → pipeline runs ~15–20 min in the background (tab may be closed) → open the PDF or the lesson folder on disk.
 - Lesson files live on the tutor's disk (`%USERPROFILE%\Documents\Vymova\lessons\<id>`), so they can forward PDFs and audio clips to students.
 - The tutor pays for their own ElevenLabs and Gemini keys, entered once in Settings.
@@ -34,7 +34,7 @@ Ordinary transcribers silently "correct" what students say. Vymova keeps the mis
 - Recordings and student names are third-party personal data: never in the repo, never in logs.
 - Gemini must be on a paid tier (free tier lets Google use the data, and the data is students' voices).
 - Up to 4 students per lesson; 2–8 people on a recording.
-- Pipeline steps can fail with a Russian `error_ru`; «Повторить» resumes from the failed step.
+- Pipeline steps can fail with a Russian `error_ru`; «Повторить» (Retry) resumes from the failed step.
 
 ## Brand Commitments
 

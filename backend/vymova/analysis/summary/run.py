@@ -1,4 +1,4 @@
-"""Сводка по группе: общие ошибки и по три главных пункта на студента."""
+"""Group summary: common mistakes and the top three items per student."""
 import json
 from pathlib import Path
 

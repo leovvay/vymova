@@ -1,4 +1,4 @@
-"""REST-клиент Gemini: загрузка аудио и генерация JSON с повторами."""
+"""Gemini REST client: audio upload and JSON generation with retries."""
 import json
 import logging
 import os
@@ -56,7 +56,7 @@ def upload(path: Path, key: str) -> str:
 
 
 def generate_json(model: str, parts: list[dict], key: str, schema_hint: str = "") -> Any:
-    """Генерация с responseMimeType=application/json. Повторы при 429/5xx/битом JSON/не-STOP."""
+    """Generation with responseMimeType=application/json. Retries on 429/5xx/broken JSON/non-STOP."""
     body = {"contents": [{"role": "user", "parts": parts}],
             "generationConfig": {"responseMimeType": "application/json"}}
     delays, last = _delays(), "неизвестная ошибка"
@@ -85,5 +85,5 @@ def generate_json(model: str, parts: list[dict], key: str, schema_hint: str = ""
         log.warning("gemini %s attempt %d: %s", model, attempt + 1, last)
         if attempt < len(delays):
             time.sleep(delays[attempt])
-    # клиент уже сделал свои повторы — раннер не должен умножать платные вызовы
+    # the client has already done its retries — the runner must not multiply paid calls
     raise StepError(f"Gemini не ответил как нужно ({last}). Нажмите «Повторить».", retry=False)

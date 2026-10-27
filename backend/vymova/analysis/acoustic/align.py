@@ -1,4 +1,4 @@
-"""IPA → грубые классы звуков и выравнивание ожидаемого произношения с услышанным."""
+"""IPA → coarse sound classes and alignment of expected pronunciation with what was heard."""
 import re
 from dataclasses import dataclass
 
@@ -23,7 +23,7 @@ class Ph:
 
 
 def tokens(ipa: str) -> list[Ph]:
-    """Грубая токенизация IPA (и словаря, и вывода моделей). Ударение помечается у первой гласной после ˈ."""
+    """Coarse IPA tokenisation (both dictionary and model output). Stress is marked on the first vowel after ˈ."""
     s = ipa.replace("u̯", "w").replace("i̯", "j").replace("͡", "").replace("‍", "")
     out: list[Ph] = []
     stress_next, i = False, 0
@@ -68,7 +68,7 @@ def _cost(a: str, b: str) -> float:
 
 
 def align(expected: list[Ph], heard: list[Ph], gap: float = 1.5) -> list[tuple[Ph | None, Ph | None]]:
-    """Needleman–Wunsch. Возвращает пары (ожидаемый, услышанный); None — вставка/выпадение."""
+    """Needleman–Wunsch. Returns (expected, heard) pairs; None — insertion/deletion."""
     n, m = len(expected), len(heard)
     D = [[0.0] * (m + 1) for _ in range(n + 1)]
     for i in range(1, n + 1):
@@ -92,14 +92,14 @@ def align(expected: list[Ph], heard: list[Ph], gap: float = 1.5) -> list[tuple[P
 
 
 def context(p: Ph) -> str:
-    """Ключ контекста ожидаемого звука: гласные делятся на ударные и безударные."""
+    """Context key of the expected sound: vowels are split into stressed and unstressed."""
     if p.sym in VOWELS:
         return f"{p.sym} ({'уд.' if p.stressed else 'безуд.'})"
     return p.sym
 
 
 def substitutions(expected: list[Ph], heard: list[Ph]) -> list[tuple[str, str]]:
-    """[(контекст ожидаемого, услышанный символ)] для всех выровненных пар, включая совпадения."""
+    """[(expected context, heard symbol)] for all aligned pairs, including matches."""
     return [(context(e), h.sym) for e, h in align(expected, heard) if e is not None and h is not None]
 
 

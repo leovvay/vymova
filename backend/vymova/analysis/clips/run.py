@@ -1,4 +1,4 @@
-"""Нарезка реплик каждого студента на клипы (границы — по словам Scribe)."""
+"""Cuts each student's turns into clips (boundaries follow Scribe's words)."""
 from pathlib import Path
 
 from ... import audio
@@ -9,7 +9,7 @@ PAD_BEFORE, PAD_AFTER, REPLY_WINDOW = 0.3, 0.4, 3.0
 
 def run(lesson_dir: Path, transcript: dict, students: dict[str, list[str]], teacher: list[str],
         folders: dict[str, str]) -> dict[str, str]:
-    """Пишет clips/<папка>/cNN.mp3 и manifest.json на каждого студента. Возвращает {имя: папка}."""
+    """Writes clips/<folder>/cNN.mp3 and manifest.json for each student. Returns {name: folder}."""
     owner = {spk: name for name, spks in students.items() for spk in spks}
     owner.update({spk: "\0teacher" for spk in teacher})
     ws = [Word(w.i, w.text, w.start, w.end, owner.get(w.speaker, "\0other:" + w.speaker)) for w in words(transcript)]

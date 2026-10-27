@@ -1,4 +1,4 @@
-"""wav2vec2 (espeak-cv-ft) → фоны по словам. Модели грузятся по одной, Linear-слои квантуются в int8."""
+"""wav2vec2 (espeak-cv-ft) → phones per word. Models load one at a time, Linear layers are quantised to int8."""
 import gc
 import json
 import multiprocessing
@@ -45,7 +45,7 @@ class Recognizer:
         self.blank = vocab.get("<pad>", 0)
 
     def phones(self, audio) -> list[tuple[float, str]]:
-        """[(время центра кадра от начала отрезка, фон)]"""
+        """[(frame-centre time from segment start, phone)]"""
         import torch
 
         inp = self.fe(audio, sampling_rate=SR, return_tensors="pt").input_values
@@ -67,7 +67,7 @@ class Recognizer:
 
 
 def _segments(word_spans: list[tuple[int, float, float]]) -> list[list[tuple[int, float, float]]]:
-    """Режет реплику на куски ≤ MAX_SEG по границам слов."""
+    """Splits a turn into chunks ≤ MAX_SEG at word boundaries."""
     segs, cur = [], []
     for w in word_spans:
         if cur and w[2] - cur[0][1] > MAX_SEG:
@@ -80,8 +80,8 @@ def _segments(word_spans: list[tuple[int, float, float]]) -> list[list[tuple[int
 
 
 def phones_per_word(model_id: str, wav16k: Path, turns: list[list[tuple[int, float, float]]]) -> dict[int, list[str]]:
-    """Распознавание в отдельном процессе: память модели освобождается целиком, а нехватка памяти
-    становится понятной ошибкой шага, а не падением всей программы."""
+    """Recognition in a separate process: the model's memory is freed entirely, and running out of memory
+    becomes a clear step error instead of crashing the whole program."""
     ctx = multiprocessing.get_context("spawn")
     try:
         with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as ex:
@@ -92,7 +92,7 @@ def phones_per_word(model_id: str, wav16k: Path, turns: list[list[tuple[int, flo
 
 
 def _phones_per_word(model_id: str, wav16k: Path, turns: list[list[tuple[int, float, float]]]) -> dict[int, list[str]]:
-    """turns — реплики как списки (индекс слова, начало, конец). Возвращает {индекс слова: [фоны]}."""
+    """turns — turns as lists (word index, start, end). Returns {word index: [phones]}."""
     import soundfile as sf
 
     rec = Recognizer(model_id)

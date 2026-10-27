@@ -1,4 +1,4 @@
-"""Память голосов между уроками: /data/voices.json — {имя: {embedding, n, role}}."""
+"""Voice memory across lessons: /data/voices.json — {name: {embedding, n, role}}."""
 import json
 import os
 from pathlib import Path
@@ -6,7 +6,7 @@ from pathlib import Path
 from ..config import paths
 from .embeddings import cosine
 
-THRESHOLD = 0.96  # на эталонном уроке: тот же человек 0.99–1.0, разные мужские голоса до 0.93
+THRESHOLD = 0.96  # on the reference lesson: same person 0.99–1.0, different male voices up to 0.93
 
 
 def _load() -> dict:

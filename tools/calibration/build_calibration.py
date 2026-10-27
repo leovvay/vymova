@@ -1,7 +1,7 @@
-"""Калибровка акустики на речи носителей (FLEURS uk_ua, CC-BY-4.0). Только для разработки.
+"""Acoustic calibration on native speech (FLEURS uk_ua, CC-BY-4.0). Development only.
 
-Считает, как часто распознаватели «искажают» ожидаемый звук у носителей, чтобы не принимать
-эти искажения за ошибки студента. Нужны: DATA_DIR (кэш словаря), MODELS_DIR, GEMINI_API_KEY.
+Measures how often the recognisers "distort" the expected sound in native speakers, so those
+distortions are not mistaken for student errors. Requires: DATA_DIR (dictionary cache), MODELS_DIR, GEMINI_API_KEY.
 
 usage: build_calibration.py --out backend/vymova/analysis/acoustic/calibration.json [--n 400] [--split dev]
 """

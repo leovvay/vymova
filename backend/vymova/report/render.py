@@ -1,4 +1,4 @@
-"""Сборка HTML-отчёта урока из артефактов шагов."""
+"""Builds the lesson's HTML report from step artifacts."""
 import json
 import re
 from pathlib import Path
@@ -30,8 +30,8 @@ def _env() -> Environment:
 
 
 def clip_href(lesson_id: str, folder: str, clip_file: str) -> str:
-    """Ссылка на клип через саму программу: работает и из PDF, открытого в браузере, и с диска
-    (контейнер всегда запущен — --restart unless-stopped)."""
+    """Link to the clip through the app itself: works both from a PDF opened in a browser and from disk
+    (the container is always running — --restart unless-stopped)."""
     return f"http://127.0.0.1:{PORT}/api/lessons/{quote(lesson_id)}/files/clips/{quote(folder)}/{quote(clip_file)}"
 
 

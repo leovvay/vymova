@@ -1,4 +1,4 @@
-"""Первый проход: Gemini слушает весь урок и выдаёт кандидатов в ошибки по каждому студенту."""
+"""First pass: Gemini listens to the whole lesson and produces error candidates for each student."""
 from pathlib import Path
 
 from ... import gemini

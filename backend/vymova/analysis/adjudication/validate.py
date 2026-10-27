@@ -1,4 +1,4 @@
-"""Механическая проверка цитат арбитра: каждая цитата обязана дословно быть в слепой записи своего клипа."""
+"""Mechanical check of the adjudicator's quotes: each quote must appear verbatim in its clip's blind transcription."""
 import re
 import unicodedata
 
@@ -13,18 +13,18 @@ def norm(s: str) -> str:
 
 
 def quote_ok(quote: str, transcription: str) -> bool:
-    """Цитата — целые слова слепой записи, хотя бы 3 буквы."""
+    """A quote is whole words of the blind transcription, at least 3 letters."""
     q = norm(quote).strip(" .,;!?…")
     if sum(ch.isalpha() for ch in q) < 3:
         return False
     return re.search(r"(?<![\w'])" + re.escape(q) + r"(?![\w'])", norm(transcription)) is not None
 
 
-MIN_AB_SIM = 0.5  # обе модели должны услышать одно и то же место, а не разные слова
+MIN_AB_SIM = 0.5  # both models must hear the same spot, not different words
 
 
 def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], replies: dict[str, str | None]) -> dict:
-    """Пересчитывает статус по реальным цитатам. Модель не может «подтвердить» без опоры на обе записи."""
+    """Recomputes the status from the actual quotes. The model cannot "confirm" without support from both transcriptions."""
     f = dict(finding)
     kept, best = [], "none"
     for ex in f.get("examples") or []:
@@ -58,7 +58,7 @@ def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], repli
     def taught(e: dict) -> bool:
         reply = norm(replies.get(e["clip"]) or "")
         word = norm(e.get("word", "")).strip(".,!?")
-        return bool(word) and len(reply.split()) <= 8 and word in reply  # короткая реплика-повтор = поправка
+        return bool(word) and len(reply.split()) <= 8 and word in reply  # short repeat reply = correction
 
     word_hits = [e for e in f["examples"] if taught(e)]
     f["taught_in_lesson"] = bool(word_hits)

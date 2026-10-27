@@ -1,4 +1,4 @@
-"""Арбитр: из кандидатов, двух слепых записей и акустики собирает подтверждённые паттерны."""
+"""Adjudicator: builds confirmed patterns from candidates, two blind transcriptions and acoustics."""
 import json
 from pathlib import Path
 

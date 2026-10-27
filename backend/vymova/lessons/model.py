@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, computed_field
 
-from ..errors import StepError  # noqa: F401 - реэкспорт
+from ..errors import StepError  # noqa: F401 - re-export
 
 StepName = Literal["ingest", "transcribe", "voices", "await_speakers", "clips", "pass1", "blind",
                    "acoustic", "adjudicate", "language", "summary", "report"]

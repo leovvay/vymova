@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Сборка: docker build -f docker/Dockerfile .
+# Build: docker build -f docker/Dockerfile .
 
 FROM node:22-slim AS web
 WORKDIR /web
@@ -10,7 +10,7 @@ RUN npx vite build --outDir /web/dist --emptyOutDir
 
 FROM python:3.12-slim-bookworm AS models
 RUN pip install --no-cache-dir huggingface_hub==2.3.0
-# ревизии моделей зафиксированы — калибровка (calibration.json) посчитана именно на них
+# model revisions are pinned — the calibration (calibration.json) was computed on exactly these
 RUN python -c "from huggingface_hub import snapshot_download as d; \
 [d(m, revision=r, local_dir='/models/' + m.split('/')[1], allow_patterns=['*.json', 'pytorch_model.bin', '*.txt']) \
  for m, r in [('facebook/wav2vec2-lv-60-espeak-cv-ft', 'ae45363bf3413b374fecd9dc8bc1df0e24c3b7f4'), \
@@ -22,7 +22,7 @@ ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 DATA_DIR=/data MODELS_DIR=/models CHRO
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg chromium fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 RUN pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
-# модели — отдельным слоем до кода, чтобы обновления кода не перекачивали гигабайты
+# models go in a separate layer before the code, so code updates don't re-download gigabytes
 COPY --from=models /models /models
 WORKDIR /app
 COPY backend/pyproject.toml ./

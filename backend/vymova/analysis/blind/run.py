@@ -1,4 +1,4 @@
-"""Слепая проверка: две модели независимо записывают фонетику каждой реплики студента."""
+"""Blind check: two models independently transcribe the phonetics of each student turn."""
 import base64
 import json
 import threading
@@ -10,7 +10,7 @@ from ...jsonio import write_json
 from .align import misaligned
 
 PROMPT = (Path(__file__).parent / "prompt.txt").read_text(encoding="utf-8")
-BATCH = 15  # длинные пачки модели путают: запись уезжает на соседние реплики
+BATCH = 15  # long batches confuse models: the transcription drifts onto neighbouring turns
 PARALLEL = 4
 
 
@@ -21,7 +21,7 @@ def _ask(model: str, batch: list[dict], clip_dir: Path, key: str) -> dict[str, d
         parts.append({"inline_data": {"mime_type": "audio/mp3",
                                       "data": base64.b64encode((clip_dir / c["file"]).read_bytes()).decode()}})
     got = gemini.generate_json(model, parts, key)
-    if isinstance(got, dict):  # одна реплика часто приходит объектом, а не списком
+    if isinstance(got, dict):  # a single turn often arrives as an object, not a list
         got = got.get("clips") if isinstance(got.get("clips"), list) else [got]
     items = [x for x in got if isinstance(x, dict)] if isinstance(got, list) else []
     if len(batch) == 1 and len(items) == 1:
@@ -30,7 +30,7 @@ def _ask(model: str, batch: list[dict], clip_dir: Path, key: str) -> dict[str, d
 
 
 def _transcribe(model: str, clips: list[dict], clip_dir: Path, key: str, partial: Path) -> list[dict]:
-    """Готовые пачки сохраняются в partial — после сбоя оплаченное не запрашивается снова."""
+    """Finished batches are saved in partial — after a failure, already-paid requests are not repeated."""
     by_id: dict[str, dict] = json.loads(partial.read_text(encoding="utf-8")) if partial.exists() else {}
     lock = threading.Lock()
 
@@ -72,7 +72,7 @@ def run(lesson_dir: Path, folders: dict[str, str], pair: tuple[str, str] | None,
             futs = {ex.submit(_transcribe, m, clips, clip_dir, key, blind_dir / folder / f"{m}.partial.json"): m
                     for m in todo}
             errors = []
-            for fut in as_completed(futs):  # каждую модель сохраняем сразу, даже если другая упала
+            for fut in as_completed(futs):  # save each model immediately, even if the other one failed
                 try:
                     write_json(blind_dir / folder / f"{futs[fut]}.json", fut.result())
                 except Exception as e:  # noqa: BLE001

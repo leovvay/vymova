@@ -27,7 +27,7 @@ def get_info() -> dict:
 
 @router.get("/busy", response_class=PlainTextResponse)
 def busy() -> str:
-    """«busy», если какой-то шаг урока выполняется прямо сейчас (лаунчер не перезапускает контейнер)."""
+    """'busy' if some lesson step is running right now (the launcher doesn't restart the container)."""
     from ..lessons import store
 
     return "busy" if any(l.status == "running" for l in store.list()) else "idle"

@@ -1,4 +1,4 @@
-"""Шаг «Акустика»: фоны реплик студентов против словарного эталона с поправкой на калибровку."""
+"""The "Acoustics" step: phones of student turns against the dictionary reference, corrected by calibration."""
 import json
 from pathlib import Path
 

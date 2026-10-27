@@ -1,4 +1,4 @@
-"""Эталонное произношение слов: Викисловарь (en.wiktionary, раздел Ukrainian), иначе Gemini. Кэш на диске."""
+"""Reference word pronunciation: Wiktionary (en.wiktionary, Ukrainian section), else Gemini. Disk cache."""
 import json
 import logging
 import os
@@ -65,7 +65,7 @@ def _pick_fast(key: str) -> str:
 
 
 def expected_ipa(words: list[str], gemini_key: str) -> dict[str, str | None]:
-    """{слово: IPA или None (не украинское)}; слова приходят уже нормализованными (align.norm_word)."""
+    """{word: IPA or None (not Ukrainian)}; words arrive already normalised (align.norm_word)."""
     want = sorted({w for w in words if w and UKR_LETTERS.match(w)})
     with _lock:
         cache = _load()

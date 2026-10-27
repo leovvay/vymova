@@ -1,4 +1,4 @@
-"""Проверка, что фонетическая запись относится к своей реплике, а не к соседней (модели «съезжают»)."""
+"""Checks that a phonetic transcription belongs to its own turn, not a neighbouring one (models "drift")."""
 import difflib
 import re
 import unicodedata
@@ -17,7 +17,7 @@ def sim(a: str, b: str) -> float:
 
 
 def misaligned(clips: list[dict], got: dict[str, str]) -> list[str]:
-    """Клипы, чья запись заметно больше похожа на текст соседней реплики, чем на свой, или пуста."""
+    """Clips whose transcription resembles the neighbouring turn's text noticeably more than its own, or is empty."""
     bad = []
     for i, c in enumerate(clips):
         ph = got.get(c["clip"], "")

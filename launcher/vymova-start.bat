@@ -34,7 +34,7 @@ for /f "delims=" %%i in ('docker inspect -f "{{.Image}}" vymova 2^>nul') do set 
 for /f "delims=" %%i in ('docker image inspect -f "{{.Id}}" %IMAGE% 2^>nul') do set "NEW=%%i"
 if not "%RUNNING%"=="true" goto recreate
 if "%CUR%"=="%NEW%" goto waitstart
-rem Новая версия скачана. Если сейчас идёт разбор урока - не прерываем его, обновимся в следующий раз.
+rem New version pulled. If a lesson is being analysed right now - don't interrupt it, update next time.
 curl -s http://127.0.0.1:8765/api/info/busy | findstr /x "busy" >nul && goto busy
 
 :recreate

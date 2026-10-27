@@ -1,4 +1,4 @@
-"""Систематические отклонения студента сверх того, что модель «нормально» искажает у носителей."""
+"""Systematic student deviations beyond what the model "normally" distorts in native speakers."""
 import collections
 import math
 
@@ -8,7 +8,7 @@ MIN_N, EXCESS, NATIVE_BLIND, P_MAX = 5, 0.25, 0.4, 0.01
 
 
 def p_value(k: int, n: int, p0: float) -> float:
-    """Односторонний биномиальный тест: вероятность увидеть ≥k искажений из n, если студент говорит как носитель."""
+    """One-sided binomial test: probability of seeing ≥k distortions out of n if the student speaks like a native."""
     p0 = min(max(p0, 1e-3), 1 - 1e-3)
     lp, lq = math.log(p0), math.log(1 - p0)
     logs = [math.lgamma(n + 1) - math.lgamma(i + 1) - math.lgamma(n - i + 1) + i * lp + (n - i) * lq
@@ -18,7 +18,7 @@ def p_value(k: int, n: int, p0: float) -> float:
 
 
 def count(pairs: list[tuple[dict, list[Ph], list[Ph]]]):
-    """pairs: [(пример {clip, word}, ожидаемые, услышанные)] → (totals, subs, examples)."""
+    """pairs: [(example {clip, word}, expected, heard)] → (totals, subs, examples)."""
     totals, subs = collections.Counter(), collections.Counter()
     examples: dict[tuple[str, str], list[dict]] = collections.defaultdict(list)
     for ex, exp, heard in pairs:
@@ -52,7 +52,7 @@ def verdicts(per_model: dict[str, tuple], calibration: dict) -> list[dict]:
     out = []
     for f in flagged.values():
         ms = f["models"].values()
-        # модель без калибровки этого звука или с сильным искажением у носителей — воздерживается
+        # model has no calibration for this sound or distorts it heavily in natives — abstain
         blind = [m for m in ms if m["native_rate"] is None or m["native_rate"] >= NATIVE_BLIND]
         hits = sum(1 for m in ms if m not in blind and m["rate"] - m["native_rate"] >= EXCESS and m["p"] < P_MAX)
         f["verdict"] = "confirmed" if hits >= 2 else "likely" if hits == 1 else "unresolved" if blind else None

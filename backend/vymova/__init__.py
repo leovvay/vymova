@@ -1,1 +1,1 @@
-"""Vymova — разбор ошибок произношения по записи урока."""
+"""Vymova — pronunciation error analysis from a lesson recording."""

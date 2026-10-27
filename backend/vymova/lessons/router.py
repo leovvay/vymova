@@ -77,7 +77,7 @@ def label_speakers(lesson_id: str, labels: dict[str, speakers.SpeakerLabel]) -> 
             name = " ".join((lab.name or "").split())
             if not name:
                 raise HTTPException(422, "У студента должно быть имя")
-            name = display.setdefault(name.casefold(), name)  # «Влад» и «влад » — один студент
+            name = display.setdefault(name.casefold(), name)  # «Влад» and «влад » are the same student
             students.setdefault(name, []).append(spk)
         elif lab.role == "teacher":
             teacher.append(spk)
@@ -93,7 +93,7 @@ def label_speakers(lesson_id: str, labels: dict[str, speakers.SpeakerLabel]) -> 
         speakers.memory.remember(speakers.TEACHER, spk, d, role="teacher")
     lesson = store.get(lesson_id)
     lesson.students = list(students)
-    lesson.steps["await_speakers"].status = "done"  # статус сразу «в очереди», не ждём воркер
+    lesson.steps["await_speakers"].status = "done"  # status becomes "queued" right away, we don't wait for the worker
     store.save_state(lesson)
     runner.enqueue(lesson_id)
     return lesson

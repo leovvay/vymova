@@ -6,7 +6,7 @@ from ..errors import StepError
 
 
 def print_pdf(html: Path, out: Path) -> None:
-    """HTML → PDF через headless Chromium (в контейнере — пакет chromium)."""
+    """HTML → PDF via headless Chromium (in the container — the chromium package)."""
     binary = os.environ.get("CHROMIUM_BIN", "chromium")
     tmp = out.with_name(out.name + ".part")
     try:

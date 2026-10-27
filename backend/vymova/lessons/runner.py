@@ -1,4 +1,4 @@
-"""Один фоновый воркер: выполняет шаги урока по порядку, пропуская шаги с готовым артефактом."""
+"""A single background worker: runs lesson steps in order, skipping steps that already have an artifact."""
 import logging
 import os
 import queue
@@ -35,7 +35,7 @@ def _delays() -> list[float]:
 
 
 def register(step: str, fn: Callable[[Lesson], str | None], artifact: Callable[[Lesson], Path]) -> None:
-    """fn может вернуть 'skipped', чтобы шаг считался пропущенным."""
+    """fn may return 'skipped' so the step counts as skipped."""
     assert step in STEPS, step
     _registry[step] = _Step(fn, artifact)
 
@@ -87,7 +87,7 @@ def _run_lesson(lesson_id: str) -> None:
         if reg.artifact(lesson).exists():
             _set(lesson, step, "done")
             continue
-        if st.attempts >= MAX_STARTS:  # процесс падал посреди шага (например, не хватило памяти)
+        if st.attempts >= MAX_STARTS:  # the process kept dying mid-step (e.g. out of memory)
             _set(lesson, step, "failed", f"Шаг «{STEP_TITLES_RU[step]}» прерывался несколько раз подряд — "
                                          "возможно, компьютеру не хватает памяти. Закройте другие программы "
                                          "и нажмите «Повторить».")
@@ -107,7 +107,7 @@ def _run_lesson(lesson_id: str) -> None:
                 else:
                     raise StepError(f"Шаг «{STEP_TITLES_RU[step]}» не создал результат.")
                 break
-            except Exception as e:  # noqa: BLE001 - любая ошибка шага уходит в повтор
+            except Exception as e:  # noqa: BLE001 - any step error goes to retry
                 msg = e.message_ru if isinstance(e, StepError) else \
                     f"Шаг «{STEP_TITLES_RU[step]}» не удался. Нажмите «Повторить»; если не поможет — сообщите разработчику."
                 log.warning("%s: step %s attempt %d failed: %s", lesson_id, step, attempt + 1, type(e).__name__)
@@ -125,7 +125,7 @@ def _worker() -> None:
             _queued.discard(lesson_id)
         try:
             _run_lesson(lesson_id)
-        except Exception:  # noqa: BLE001 - воркер не должен умирать
+        except Exception:  # noqa: BLE001 - the worker must not die
             log.exception("runner crashed on %s", lesson_id)
 
 
