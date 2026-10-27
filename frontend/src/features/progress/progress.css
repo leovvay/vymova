@@ -1,0 +1,153 @@
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--ink);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 20px minmax(12rem, 16rem) minmax(0, 1fr) 6.5rem;
+  align-items: center;
+  column-gap: var(--s-4);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.step__mark {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--paper);
+}
+
+/* Only "now" and "stopped" get a mark; done speaks through its ink slab and time. */
+.step--running .step__mark {
+  background: var(--ochre);
+}
+
+.step--failed .step__mark {
+  background: var(--cinnabar);
+}
+
+.step__title {
+  color: var(--ink);
+}
+
+.step--pending .step__title,
+.step--skipped .step__title {
+  color: var(--ink-2);
+}
+
+.step--running .step__slab .slab__fill {
+  transition: width 1s linear;
+}
+
+.step--running .step__title,
+.step--failed .step__title {
+  font-weight: 600;
+}
+
+.step__time {
+  text-align: right;
+  font-size: var(--t-s);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.step--running .step__time {
+  color: var(--ochre-deep);
+  font-weight: 600;
+}
+
+.step--failed .step__time {
+  color: var(--cinnabar);
+  font-weight: 600;
+}
+
+.step__detail {
+  grid-column: 2 / -1;
+}
+
+.step-error {
+  margin-top: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  background: var(--cinnabar-wash);
+  border: 1.5px solid var(--cinnabar);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.step-error__text {
+  font-weight: 500;
+  max-width: 62ch;
+}
+
+.step-error__retry {
+  color: var(--cinnabar);
+  font-size: var(--t-s);
+  font-weight: 600;
+}
+
+.step-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+.step-error__hint {
+  font-size: var(--t-s);
+  color: var(--ink-2);
+}
+
+.progress__count {
+  white-space: nowrap;
+}
+
+.progress__edit {
+  margin-top: var(--s-4);
+  font-size: var(--t-s);
+  color: var(--ink-2);
+}
+
+.progress__foot {
+  margin-top: var(--s-6);
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  text-decoration-thickness: 2px;
+}
+
+@media (max-width: 640px) {
+  .step {
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    row-gap: var(--s-2);
+  }
+
+  .step__slab {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .step__time {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .step__detail {
+    grid-column: 1 / -1;
+  }
+}

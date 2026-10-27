@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from contextlib import asynccontextmanager
 
-from . import lessons, settings
+from . import info, lessons, settings
 from .lessons import steps
 from .config import PORT
 
@@ -26,6 +26,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Vymova", lifespan=_lifespan)
     app.include_router(settings.router)
     app.include_router(lessons.router)
+    app.include_router(info.router)
     if STATIC.exists():
         app.mount("/", StaticFiles(directory=STATIC, html=True), name="static")
     return app

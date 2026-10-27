@@ -1,0 +1,211 @@
+.band {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.band__inner {
+  max-width: calc(var(--column) + 2 * var(--s-6));
+  margin: 0 auto;
+  padding: 0 var(--s-6);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  color: var(--paper);
+}
+
+.wordmark:hover {
+  text-decoration: none;
+}
+
+/* Three stacked type-bars: the slab motif at its smallest. */
+.wordmark__bars {
+  display: grid;
+  gap: 3px;
+  width: 22px;
+}
+
+.wordmark__bars span {
+  display: block;
+  height: 4px;
+  background: var(--paper);
+}
+
+.wordmark__bars span:nth-child(1) {
+  background: var(--ochre);
+}
+
+.wordmark__bars span:nth-child(2) {
+  width: 65%;
+}
+
+.wordmark__bars span:nth-child(3) {
+  width: 40%;
+}
+
+.nav {
+  margin-left: auto;
+  display: flex;
+  height: 100%;
+}
+
+.nav a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s-4);
+  color: var(--paper);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav a::after {
+  content: "";
+  position: absolute;
+  left: var(--s-4);
+  right: var(--s-4);
+  bottom: 0;
+  height: 5px;
+  background: var(--ochre);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-out);
+}
+
+.nav a:hover::after {
+  transform: scaleX(0.35);
+}
+
+.nav a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+.nav a:focus-visible {
+  outline-color: var(--ochre);
+  outline-offset: -6px;
+}
+
+.offline {
+  background: var(--cinnabar);
+  color: var(--paper);
+  font-size: var(--t-s);
+  font-weight: 500;
+}
+
+.offline p {
+  max-width: calc(var(--column) + 2 * var(--s-6));
+  margin: 0 auto;
+  padding: var(--s-2) var(--s-6);
+}
+
+.main {
+  max-width: calc(var(--column) + 2 * var(--s-6));
+  margin: 0 auto;
+  padding: var(--s-7) var(--s-6) var(--s-8);
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-5);
+  margin-bottom: var(--s-6);
+}
+
+.page-head__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-head__title {
+  font-family: var(--font-display);
+  font-size: var(--t-xxl);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.page-head__lead {
+  margin-top: var(--s-3);
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+.page-head__aside {
+  flex: none;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-5);
+  color: var(--ink-2);
+  font-size: var(--t-s);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--t-l);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  .band__inner,
+  .main,
+  .offline p {
+    padding-left: var(--s-4);
+    padding-right: var(--s-4);
+  }
+
+  .band__inner {
+    height: 56px;
+    gap: var(--s-3);
+  }
+
+  .wordmark {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+  }
+
+  .nav a {
+    padding: 0 var(--s-3);
+  }
+
+  .nav a::after {
+    left: var(--s-3);
+    right: var(--s-3);
+  }
+
+  .main {
+    padding-top: var(--s-6);
+  }
+
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-head__title {
+    font-size: var(--t-xl);
+  }
+}

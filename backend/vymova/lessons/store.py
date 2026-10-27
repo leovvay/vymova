@@ -3,7 +3,7 @@ import os
 import re
 import shutil
 import threading
-from datetime import date as date_cls, datetime
+from datetime import date as date_cls, datetime, timezone
 from pathlib import Path
 from typing import BinaryIO
 
@@ -44,7 +44,7 @@ def create(file: BinaryIO, filename: str, date: str | None, topic: str | None, p
         with open(d / f"source{ext}", "wb") as out:
             shutil.copyfileobj(file, out, length=1024 * 1024)
         lesson = Lesson(id=lesson_id, date=day, topic=topic or "", people=people, source=f"source{ext}",
-                        created_at=datetime.now())
+                        created_at=datetime.now(timezone.utc))
         save_state(lesson)
     return lesson
 
@@ -73,7 +73,7 @@ def list() -> list[Lesson]:  # noqa: A001 - имя из плана
             out.append(Lesson.model_validate_json(f.read_text(encoding="utf-8")))
         except (ValueError, OSError):
             continue
-    return sorted(out, key=lambda l: l.created_at, reverse=True)
+    return sorted(out, key=lambda l: l.created_at.timestamp() if l.created_at.tzinfo else l.created_at.replace(tzinfo=timezone.utc).timestamp(), reverse=True)
 
 
 def read_json(lesson_id: str, name: str):

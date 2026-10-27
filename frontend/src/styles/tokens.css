@@ -1,0 +1,44 @@
+/* Vymova — 1920s Kharkiv book-cover world held to a working screen:
+   paper ground, warm black ink, ochre for "now / your turn", cinnabar for errors only. */
+:root {
+  --paper: #efeee9;
+  --sheet: #fafaf7;
+  --ink: #1d1b17;
+  --ink-2: #4d4940;
+  --ink-3: #6b665c;
+  --rule: #c9c5b9;
+
+  --ochre: #e3a42b;
+  --ochre-hover: #d39318;
+  --ochre-deep: #7a5200;
+  --ochre-wash: #f5e4bd;
+
+  --cinnabar: #b8361c;
+  --cinnabar-wash: #f5dcd3;
+
+  --font-display: "Unbounded Variable", "Segoe UI", system-ui, sans-serif;
+  --font-text: "Golos Text Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-path: "Cascadia Mono", Consolas, "SF Mono", ui-monospace, monospace;
+
+  /* Fixed five-step scale. */
+  --t-s: 0.875rem;   /* 14 — meta, hints */
+  --t-m: 1.0625rem;  /* 17 — body, controls */
+  --t-l: 1.3125rem;  /* 21 — section titles */
+  --t-xl: 1.75rem;   /* 28 — figures */
+  --t-xxl: 2.25rem;  /* 36 — page titles */
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 72px;
+
+  --column: 880px;
+  --control-h: 46px;
+  --slab-h: 12px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}

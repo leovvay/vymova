@@ -5,7 +5,7 @@ import queue
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
@@ -60,9 +60,9 @@ def _set(lesson: Lesson, step: str, status: str, error_ru: str | None = None) ->
     st = lesson.steps[step]
     st.status, st.error_ru = status, error_ru
     if status == "running":
-        st.started_at, st.finished_at = datetime.now(), None
+        st.started_at, st.finished_at = datetime.now(timezone.utc), None
     elif status in ("done", "failed", "skipped"):
-        st.finished_at = datetime.now()
+        st.finished_at = datetime.now(timezone.utc)
     store.save_state(lesson)
 
 

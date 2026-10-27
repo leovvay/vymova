@@ -1,0 +1,122 @@
+.result {
+  background: var(--sheet);
+  border: 2px solid var(--ink);
+}
+
+.result__cover {
+  background: var(--ink);
+  color: var(--paper);
+  padding: var(--s-6) var(--s-6) var(--s-5);
+  display: grid;
+  gap: var(--s-2);
+}
+
+.result__title {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.result__meta {
+  color: var(--rule);
+  font-size: var(--t-s);
+}
+
+.result__body {
+  padding: var(--s-6);
+  display: grid;
+  gap: var(--s-6);
+}
+
+.result__label {
+  font-size: var(--t-s);
+  font-weight: 600;
+  margin-bottom: calc(-1 * var(--s-4));
+}
+
+.result__students {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.result__student {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  column-gap: var(--s-5);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.result__name {
+  font-weight: 600;
+}
+
+.result__line {
+  color: var(--ink);
+  max-width: 62ch;
+}
+
+.result__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+
+.result__pdf-hint {
+  font-size: var(--t-s);
+  color: var(--ink-2);
+}
+
+.folder {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.folder__row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+/* A Windows path is data: set in a mono face so l/1/I and 0/O never blur, and wrapped whole. */
+.folder__path {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h);
+  padding: var(--s-2) var(--s-3);
+  border: 1.5px solid var(--ink-2);
+  background: var(--paper);
+  font-family: var(--font-path);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  user-select: all;
+  cursor: text;
+}
+
+.folder__copy {
+  flex: none;
+  min-width: 11.5rem;
+}
+
+@media (max-width: 640px) {
+  .result__cover,
+  .result__body {
+    padding: var(--s-5);
+  }
+
+  .result__student {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-1);
+  }
+
+  .folder__row {
+    flex-direction: column;
+  }
+}

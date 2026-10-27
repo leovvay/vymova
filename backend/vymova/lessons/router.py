@@ -85,6 +85,7 @@ def label_speakers(lesson_id: str, labels: dict[str, speakers.SpeakerLabel]) -> 
         speakers.memory.remember(speakers.TEACHER, spk, d, role="teacher")
     lesson = store.get(lesson_id)
     lesson.students = list(students)
+    lesson.steps["await_speakers"].status = "done"  # статус сразу «в очереди», не ждём воркер
     store.save_state(lesson)
     runner.enqueue(lesson_id)
     return lesson
