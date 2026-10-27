@@ -58,7 +58,7 @@ def generate_json(model: str, parts: list[dict], key: str, schema_hint: str = ""
     for attempt in range(len(delays) + 1):
         try:
             r = httpx.post(f"{BASE}/v1beta/models/{model}:generateContent", json=body,
-                           headers={"x-goog-api-key": key}, timeout=1800)
+                           headers={"x-goog-api-key": key}, timeout=600)
             _check(r)
             if r.status_code == 200:
                 data = r.json()

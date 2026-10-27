@@ -1,6 +1,7 @@
 """Регистрация шагов конвейера: связывает урок с функциями предметных областей."""
 from .. import audio, settings, speakers, transcription
-from ..analysis import clips, pass1
+from .. import gemini
+from ..analysis import blind, clips, pass1
 from . import runner, store
 from .model import Lesson
 
@@ -63,6 +64,14 @@ def _pass1(lesson: Lesson) -> None:
     store.write_json(lesson.id, "pass1.json", out)
 
 
+def _blind(lesson: Lesson) -> None:
+    st = settings.load()
+    pair = gemini.pick_blind_pair(st.gemini_key, st.blind_models)
+    folders = store.read_json(lesson.id, "clips/index.json")
+    out = blind.run(store.dir(lesson.id), folders, pair, st.gemini_key)
+    store.write_json(lesson.id, "blind/index.json", {**out, "students": folders})
+
+
 def register_all() -> None:
     def art(name: str):
         return lambda l: store.dir(l.id) / name
@@ -72,3 +81,4 @@ def register_all() -> None:
     runner.register("voices", _voices, art("voices.json"))
     runner.register("clips", _clips, art("clips/index.json"))
     runner.register("pass1", _pass1, art("pass1.json"))
+    runner.register("blind", _blind, art("blind/index.json"))

@@ -1,0 +1,12 @@
+You are a phonetician. Below are short audio clips of ONE adult non-native learner speaking (mostly) Ukrainian during a lesson; some clips are spontaneous chat and may contain words from other Slavic languages. Occasionally another voice (the teacher) intrudes briefly — mark that as [other] and do not transcribe it.
+
+For EACH clip produce a NARROW phonetic transcription in Cyrillic of exactly what the learner pronounces — NOT the dictionary spelling of the word he probably meant.
+- Mark the stressed vowel with an acute accent on every word of 2+ syllables.
+- Mark palatalised (soft) consonants with ' (e.g. д'е vs де, т' vs т, ц' vs ц, р'і vs ри).
+- Write unstressed vowels exactly as heard: distinguish а / о, е / и / і / є.
+- Write word-final consonants exactly as heard (т', ть, ч', ц', ць, ў, ф, л …). Mark long consonants by doubling (ц':).
+- Write fillers (е-е) and false starts as heard.
+- If a word clearly is Russian, Belarusian or Polish, still just write what you hear.
+Do not guess what the speaker intended; do not normalise to standard Ukrainian. Accuracy matters more than readability.
+
+Return JSON only: [{"clip":"c01","phonetic":"...","non_ukrainian_words":["..."],"notable_ru":"short note in Russian on any clearly audible non-standard pronunciation, or empty"}]
