@@ -3,7 +3,7 @@ from pathlib import Path
 
 from .. import audio
 from ..transcription import Turn, Word, group, words
-from . import memory
+from . import embeddings, memory
 from .model import Sample, Voice
 
 
@@ -15,6 +15,7 @@ def build(lesson_dir: Path, transcript: dict) -> list[Voice]:
     for w in ws:
         stats[w.speaker][0] += w.end - w.start
         stats[w.speaker][1] += 1
+    embeddings.lesson_embeddings(lesson_dir, transcript, list(stats))
     voices = []
     for spk, (sec, n) in sorted(stats.items(), key=lambda kv: -kv[1][0]):
         samples = []

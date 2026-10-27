@@ -82,7 +82,7 @@ def label_speakers(lesson_id: str, labels: dict[str, speakers.SpeakerLabel]) -> 
         for spk in spks:
             speakers.memory.remember(name, spk, d)
     for spk in teacher:
-        speakers.memory.remember(speakers.TEACHER, spk, d)
+        speakers.memory.remember(speakers.TEACHER, spk, d, role="teacher")
     lesson = store.get(lesson_id)
     lesson.students = list(students)
     store.save_state(lesson)

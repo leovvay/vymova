@@ -17,9 +17,8 @@ ml = [
   "numpy>=1.26",
   "soundfile>=0.12",
   "torch>=2.3",
-  "torchaudio>=2.3",
   "transformers>=4.44",
-  "speechbrain>=1.0",
+  "huggingface_hub>=0.24",
 ]
 
 [project.scripts]
