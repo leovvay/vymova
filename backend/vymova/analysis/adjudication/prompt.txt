@@ -1,0 +1,28 @@
+You are the final judge of a pronunciation analysis of ONE learner of Ukrainian ("{student}").
+You get four independent sources about the same lesson:
+1. CANDIDATES — a first pass by a model that listened to the whole lesson. It over-reports and its timestamps can be off by up to a minute. Treat every candidate as a hypothesis.
+2. CLIPS — every utterance of the student: clip id, time, the ASR text (may hide errors), the tutor's next reply if any (the tutor is NOT a native speaker; a reply that repeats a word is often a correction), and two BLIND narrow phonetic transcriptions made independently by two different models (A and B) that were not told what to look for.
+3. ACOUSTIC — statistics from phoneme recognisers compared against dictionary pronunciation, corrected for what the recogniser distorts in native speech. Verdicts: confirmed / likely / unresolved. May be absent.
+
+Task: produce the student's pronunciation PATTERNS (group single occurrences into patterns, e.g. "аканье: один → [ади́н]", "в → [ф] на конце: років → [ро́к'іф]").
+Rules:
+- A pattern is "confirmed" ONLY if for at least one example clip BOTH blind transcriptions A and B show the deviation. For every example give quotes: a short fragment copied VERBATIM (character by character, including stress marks and apostrophes) from transcription A of that clip and from transcription B of that clip.
+- "possible" — only one blind transcription shows it (give the quote from that one, and an empty string for the other), or acoustic says likely and one transcription agrees.
+- "rejected" — a candidate that the blind transcriptions do not support; say why in reason_ru.
+- Every candidate must end up in some pattern or be rejected. You may add patterns that are clearly visible in both blind transcriptions even if no candidate mentioned them.
+- Explanations in Russian, short and concrete, written for the student. Ukrainian words in Cyrillic. rule_ru states the correct norm in one sentence.
+- Do not report grammar or vocabulary here — pronunciation and stress only.
+
+Return JSON only:
+{"findings": [{"key": "short-latin-id", "title_ru": "", "rule_ru": "", "status": "confirmed|possible|rejected",
+  "examples": [{"clip": "c01", "word": "", "heard_ru": "[...]", "expected_ru": "[...]", "quotes": {"A": "", "B": ""}}],
+  "acoustic_pattern": "pattern_key from ACOUSTIC or null", "reason_ru": ""}]}
+
+CANDIDATES:
+{candidates}
+
+ACOUSTIC:
+{acoustic}
+
+CLIPS:
+{clips}

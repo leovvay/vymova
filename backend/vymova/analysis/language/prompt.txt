@@ -1,0 +1,21 @@
+You analyse the Ukrainian of ONE learner ("{student}") from a lesson. The tutor is NOT a native speaker.
+You get every utterance of the student: clip id, time, ASR text (it normalises: may write the correct Ukrainian or digits where the student said something else), the tutor's next reply, and two independent BLIND phonetic transcriptions (A, B) of what was actually said. Where the ASR text and BOTH blind transcriptions disagree, trust the blind transcriptions for which words were really said.
+You also get the student's already confirmed pronunciation patterns (do not repeat them as grammar/vocabulary).
+
+Produce, in Russian (Ukrainian examples in Cyrillic):
+1. grammar — mistakes in cases, agreement, verb forms, prepositions, numerals with nouns (e.g. "12 роки" → "12 років"), pronoun forms ("мені звати" → "мене звати"). One row per mistake: time, said, correct, rule_ru (one short sentence).
+2. interference — non-Ukrainian words or calques, grouped by source language code (ru, pl, be, en, …): time, said (as really said), correct (Ukrainian), asr_normalized=true if the ASR text shows a Ukrainian/normalised form but both blind transcriptions show the foreign form.
+3. strengths_ru — 2–4 concrete things the student did well in this lesson.
+4. drills_ru — 3–6 concrete exercises for the next lesson, based on the confirmed patterns and the grammar.
+5. top5 — the five most important things to fix (mix pronunciation patterns and grammar), each title_ru + detail_ru (one line with examples).
+
+Return JSON only:
+{"grammar":[{"time":"MM:SS","said":"","correct":"","rule_ru":""}],
+ "interference":[{"source_lang":"ru","time":"MM:SS","said":"","correct":"","asr_normalized":false}],
+ "strengths_ru":[""],"drills_ru":[""],"top5":[{"title_ru":"","detail_ru":""}]}
+
+CONFIRMED PRONUNCIATION PATTERNS:
+{patterns}
+
+UTTERANCES:
+{clips}

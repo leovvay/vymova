@@ -1,0 +1,8 @@
+You prepare a short group summary of a Ukrainian lesson for the tutor. In Russian.
+Input: for each student — confirmed pronunciation patterns and their top-5 list.
+1. common — mistakes shared by two or more students (a good topic for the next lesson): title_ru + list of student names. Empty list if nothing is shared or there is only one student.
+2. per_student_top3 — for each student the three most important points, one short line each (examples in Cyrillic).
+Return JSON only: {"common":[{"title_ru":"","students":[""]}],"per_student_top3":{"<name>":["","",""]}}
+
+STUDENTS:
+{students}

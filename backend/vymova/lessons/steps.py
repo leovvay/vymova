@@ -1,7 +1,8 @@
 """Регистрация шагов конвейера: связывает урок с функциями предметных областей."""
 from .. import audio, settings, speakers, transcription
-from .. import gemini
-from ..analysis import blind, clips, pass1
+from .. import gemini, report
+from ..config import paths
+from ..analysis import acoustic, adjudication, blind, clips, language, pass1, summary
 from . import runner, store
 from .model import Lesson
 
@@ -72,6 +73,44 @@ def _blind(lesson: Lesson) -> None:
     store.write_json(lesson.id, "blind/index.json", {**out, "students": folders})
 
 
+def _acoustic(lesson: Lesson) -> None:
+    st = settings.load()
+    folders = store.read_json(lesson.id, "clips/index.json")
+    acoustic.run(store.dir(lesson.id), store.read_json(lesson.id, "transcript.json"), folders, st.gemini_key,
+                 st.acoustic_enabled)
+    store.write_json(lesson.id, "acoustic/index.json", folders)
+
+
+def _adjudicate(lesson: Lesson) -> None:
+    key = settings.load().gemini_key
+    folders = store.read_json(lesson.id, "clips/index.json")
+    for name, folder in folders.items():
+        if not (store.dir(lesson.id) / "adjudication" / f"{folder}.json").exists():
+            store.write_json(lesson.id, f"adjudication/{folder}.json",
+                             adjudication.run(store.dir(lesson.id), name, folder, key))
+    store.write_json(lesson.id, "adjudication/index.json", folders)
+
+
+def _language(lesson: Lesson) -> None:
+    key = settings.load().gemini_key
+    folders = store.read_json(lesson.id, "clips/index.json")
+    for name, folder in folders.items():
+        if not (store.dir(lesson.id) / "language" / f"{folder}.json").exists():
+            store.write_json(lesson.id, f"language/{folder}.json", language.run(store.dir(lesson.id), name, folder, key))
+    store.write_json(lesson.id, "language/index.json", folders)
+
+
+def _summary(lesson: Lesson) -> None:
+    folders = store.read_json(lesson.id, "clips/index.json")
+    store.write_json(lesson.id, "summary.json", summary.run(store.dir(lesson.id), folders, settings.load().gemini_key))
+
+
+def _report(lesson: Lesson) -> None:
+    d = store.dir(lesson.id)
+    html = report.build(d, lesson.id, lesson.date, lesson.topic, paths().host_data_dir)
+    report.print_pdf(html, d / "report.pdf")
+
+
 def register_all() -> None:
     def art(name: str):
         return lambda l: store.dir(l.id) / name
@@ -82,3 +121,8 @@ def register_all() -> None:
     runner.register("clips", _clips, art("clips/index.json"))
     runner.register("pass1", _pass1, art("pass1.json"))
     runner.register("blind", _blind, art("blind/index.json"))
+    runner.register("acoustic", _acoustic, art("acoustic/index.json"))
+    runner.register("adjudicate", _adjudicate, art("adjudication/index.json"))
+    runner.register("language", _language, art("language/index.json"))
+    runner.register("summary", _summary, art("summary.json"))
+    runner.register("report", _report, art("report.pdf"))
