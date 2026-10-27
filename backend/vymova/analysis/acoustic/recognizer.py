@@ -1,9 +1,14 @@
 """wav2vec2 (espeak-cv-ft) → фоны по словам. Модели грузятся по одной, Linear-слои квантуются в int8."""
 import gc
 import json
+import multiprocessing
+import os
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 
 from ...config import paths
+from ...errors import StepError
 
 MODELS = ["facebook/wav2vec2-lv-60-espeak-cv-ft", "facebook/wav2vec2-xlsr-53-espeak-cv-ft"]
 SR, EDGE, MAX_SEG = 16000, 0.04, 25.0
@@ -29,11 +34,12 @@ class Recognizer:
 
         d = model_dir(model_id)
         self.fe = Wav2Vec2FeatureExtractor.from_pretrained(d)
-        model = Wav2Vec2ForCTC.from_pretrained(d).eval()
+        model = Wav2Vec2ForCTC.from_pretrained(d, low_cpu_mem_usage=True).eval()
         engines = torch.backends.quantized.supported_engines
         if "qnnpack" in engines and "fbgemm" not in engines:
             torch.backends.quantized.engine = "qnnpack"
-        self.model = torch.quantization.quantize_dynamic(model, {torch.nn.Linear}, dtype=torch.qint8)
+        torch.set_num_threads(max(1, min(4, os.cpu_count() or 1)))
+        self.model = torch.quantization.quantize_dynamic(model, {torch.nn.Linear}, dtype=torch.qint8, inplace=True)
         vocab = json.loads((d / "vocab.json").read_text(encoding="utf-8"))
         self.id2tok = {v: k for k, v in vocab.items()}
         self.blank = vocab.get("<pad>", 0)
@@ -74,6 +80,18 @@ def _segments(word_spans: list[tuple[int, float, float]]) -> list[list[tuple[int
 
 
 def phones_per_word(model_id: str, wav16k: Path, turns: list[list[tuple[int, float, float]]]) -> dict[int, list[str]]:
+    """Распознавание в отдельном процессе: память модели освобождается целиком, а нехватка памяти
+    становится понятной ошибкой шага, а не падением всей программы."""
+    ctx = multiprocessing.get_context("spawn")
+    try:
+        with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as ex:
+            return ex.submit(_phones_per_word, model_id, wav16k, turns).result()
+    except BrokenProcessPool as e:
+        raise StepError("Не хватило памяти для акустической проверки. Закройте другие программы и нажмите "
+                        "«Повторить» или выключите акустику в «Настройках».", retry=False) from e
+
+
+def _phones_per_word(model_id: str, wav16k: Path, turns: list[list[tuple[int, float, float]]]) -> dict[int, list[str]]:
     """turns — реплики как списки (индекс слова, начало, конец). Возвращает {индекс слова: [фоны]}."""
     import soundfile as sf
 

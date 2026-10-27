@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from ... import gemini
+from ..speech import low_speech
 from .validate import check
 
 PROMPT = (Path(__file__).parent / "prompt.txt").read_text(encoding="utf-8")
@@ -18,6 +19,8 @@ def run(lesson_dir: Path, name: str, folder: str, key: str) -> dict:
     pair = json.loads((lesson_dir / "blind" / "index.json").read_text(encoding="utf-8")).get("pair")
     if not pair:
         return {"unavailable": True, "findings": []}
+    if low_speech(lesson_dir, folder)[0]:
+        return {"unavailable": False, "low_speech": True, "findings": []}
     a, b = ({x["clip"]: x["phonetic"] for x in json.loads((lesson_dir / "blind" / folder / f"{m}.json")
                                                           .read_text(encoding="utf-8"))} for m in pair)
     pass1 = json.loads((lesson_dir / "pass1.json").read_text(encoding="utf-8"))["students"].get(name, {})

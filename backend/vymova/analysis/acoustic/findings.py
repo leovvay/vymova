@@ -10,7 +10,11 @@ MIN_N, EXCESS, NATIVE_BLIND, P_MAX = 5, 0.25, 0.4, 0.01
 def p_value(k: int, n: int, p0: float) -> float:
     """Односторонний биномиальный тест: вероятность увидеть ≥k искажений из n, если студент говорит как носитель."""
     p0 = min(max(p0, 1e-3), 1 - 1e-3)
-    return sum(math.comb(n, i) * p0 ** i * (1 - p0) ** (n - i) for i in range(k, n + 1))
+    lp, lq = math.log(p0), math.log(1 - p0)
+    logs = [math.lgamma(n + 1) - math.lgamma(i + 1) - math.lgamma(n - i + 1) + i * lp + (n - i) * lq
+            for i in range(k, n + 1)]
+    top = max(logs)
+    return min(1.0, math.exp(top) * sum(math.exp(x - top) for x in logs))
 
 
 def count(pairs: list[tuple[dict, list[Ph], list[Ph]]]):

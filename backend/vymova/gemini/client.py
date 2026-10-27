@@ -18,9 +18,14 @@ def _delays() -> list[float]:
     return [float(x) for x in os.environ.get("VYMOVA_GEMINI_DELAYS", "10,30,90").split(",") if x]
 
 
+FATAL_FINISH = {"SAFETY", "RECITATION", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII", "LANGUAGE"}
+
+
 def _check(r: httpx.Response) -> None:
     if r.status_code in (400, 401, 403) and ("API_KEY" in r.text or "PERMISSION_DENIED" in r.text or r.status_code != 400):
         raise StepError("Gemini отклонил ключ. Проверьте его в «Настройках».", retry=False)
+    if r.status_code == 400:
+        raise StepError("Gemini отклонил запрос (ошибка 400). Повтор не поможет — сообщите разработчику.", retry=False)
     if r.status_code == 404:
         raise StepError("Модель Gemini недоступна для этого ключа. Проверьте выбор моделей в «Настройках».", retry=False)
 
@@ -70,6 +75,8 @@ def generate_json(model: str, parts: list[dict], key: str, schema_hint: str = ""
                     u = data.get("usageMetadata", {})
                     log.info("gemini %s ok: tokens in=%s out=%s", model, u.get("promptTokenCount"), u.get("candidatesTokenCount"))
                     return out
+                if finish in FATAL_FINISH:
+                    raise StepError(f"Gemini отказался отвечать ({finish}).", retry=False)
                 last = f"ответ оборван ({finish})"
             else:
                 last = f"ошибка {r.status_code}"
@@ -78,4 +85,5 @@ def generate_json(model: str, parts: list[dict], key: str, schema_hint: str = ""
         log.warning("gemini %s attempt %d: %s", model, attempt + 1, last)
         if attempt < len(delays):
             time.sleep(delays[attempt])
-    raise StepError(f"Gemini не ответил как нужно ({last}). Нажмите «Повторить».")
+    # клиент уже сделал свои повторы — раннер не должен умножать платные вызовы
+    raise StepError(f"Gemini не ответил как нужно ({last}). Нажмите «Повторить».", retry=False)

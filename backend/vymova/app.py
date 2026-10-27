@@ -1,9 +1,12 @@
 import argparse
 import logging
+import re
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from contextlib import asynccontextmanager
@@ -24,6 +27,17 @@ async def _lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Vymova", lifespan=_lifespan)
+    # программа только для этого компьютера: чужие сайты не могут ни читать её, ни запускать платные шаги
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
+
+    @app.middleware("http")
+    async def same_origin_only(request: Request, call_next):
+        origin = request.headers.get("origin")
+        if request.method not in ("GET", "HEAD", "OPTIONS") and origin and \
+                not re.fullmatch(r"http://(localhost|127\.0\.0\.1)(:\d+)?", origin):
+            return JSONResponse({"detail": "Запрос не с этого компьютера"}, status_code=403)
+        return await call_next(request)
+
     app.include_router(settings.router)
     app.include_router(lessons.router)
     app.include_router(info.router)

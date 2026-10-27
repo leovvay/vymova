@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .. import audio
 from ..analysis.acoustic.align import norm_word
+from ..config import PORT
 from ..transcription import words
 
 HERE = Path(__file__).parent
@@ -28,15 +29,10 @@ def _env() -> Environment:
     return env
 
 
-def clip_href(host_data_dir: str, lesson_id: str, folder: str, clip_file: str) -> str:
-    """Ссылка на клип, которая откроется на компьютере репетитора (путь хоста, а не контейнера)."""
-    if not host_data_dir:
-        return f"clips/{folder}/{clip_file}"
-    parts = re.split(r"[\\/]+", host_data_dir.strip()) + ["lessons", lesson_id, "clips", folder, clip_file]
-    parts = [p for p in parts if p]
-    drive, rest = (parts[0], parts[1:]) if re.fullmatch(r"[A-Za-z]:", parts[0]) else ("", parts)
-    path = "/".join(quote(p, safe="") for p in rest)
-    return f"file:///{drive}/{path}" if drive else f"file:///{path}"
+def clip_href(lesson_id: str, folder: str, clip_file: str) -> str:
+    """Ссылка на клип через саму программу: работает и из PDF, открытого в браузере, и с диска
+    (контейнер всегда запущен — --restart unless-stopped)."""
+    return f"http://127.0.0.1:{PORT}/api/lessons/{quote(lesson_id)}/files/clips/{quote(folder)}/{quote(clip_file)}"
 
 
 def _ts(sec: float) -> str:
@@ -94,7 +90,7 @@ def _student(d: Path, lesson_id: str, name: str, folder: str, by_i: dict, host: 
             ws.append({"text": w.text, "a": "".join(p.get(lv, [])) or "—", "b": "".join(p.get(xl, [])) or "—",
                        "hl": norm_word(w.text) in hl_words})
         clips.append({"clip": c["clip"], "time": times[c["clip"]], "words": ws,
-                      "href": clip_href(host, lesson_id, folder, c["file"]),
+                      "href": clip_href(lesson_id, folder, c["file"]),
                       "blind": [{"model": m, "text": blind[m].get(c["clip"], "—")} for m in pair]})
 
     return {"name": name, "low_speech": lang.get("low_speech", False), "speech_sec": lang.get("speech_sec", 0),

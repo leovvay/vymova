@@ -10,7 +10,7 @@ def print_pdf(html: Path, out: Path) -> None:
     binary = os.environ.get("CHROMIUM_BIN", "chromium")
     tmp = out.with_name(out.name + ".part")
     try:
-        r = subprocess.run([binary, "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
+        r = subprocess.run([binary, "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--no-pdf-header-footer",
                             f"--print-to-pdf={tmp}", html.resolve().as_uri()],
                            capture_output=True, text=True, timeout=180)
     except (OSError, subprocess.TimeoutExpired) as e:

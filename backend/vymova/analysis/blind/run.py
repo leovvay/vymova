@@ -1,10 +1,12 @@
 """Слепая проверка: две модели независимо записывают фонетику каждой реплики студента."""
 import base64
 import json
-from concurrent.futures import ThreadPoolExecutor
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from ... import gemini
+from ...jsonio import write_json
 from .align import misaligned
 
 PROMPT = (Path(__file__).parent / "prompt.txt").read_text(encoding="utf-8")
@@ -19,15 +21,29 @@ def _ask(model: str, batch: list[dict], clip_dir: Path, key: str) -> dict[str, d
         parts.append({"inline_data": {"mime_type": "audio/mp3",
                                       "data": base64.b64encode((clip_dir / c["file"]).read_bytes()).decode()}})
     got = gemini.generate_json(model, parts, key)
-    return {x.get("clip"): x for x in got if isinstance(x, dict)}
+    if isinstance(got, dict):  # одна реплика часто приходит объектом, а не списком
+        got = got.get("clips") if isinstance(got.get("clips"), list) else [got]
+    items = [x for x in got if isinstance(x, dict)] if isinstance(got, list) else []
+    if len(batch) == 1 and len(items) == 1:
+        items[0]["clip"] = batch[0]["clip"]
+    return {x.get("clip"): x for x in items}
 
 
-def _transcribe(model: str, clips: list[dict], clip_dir: Path, key: str) -> list[dict]:
-    by_id: dict[str, dict] = {}
-    batches = [clips[i:i + BATCH] for i in range(0, len(clips), BATCH)]
-    with ThreadPoolExecutor(max_workers=PARALLEL) as ex:
-        for got in ex.map(lambda b: _ask(model, b, clip_dir, key), batches):
+def _transcribe(model: str, clips: list[dict], clip_dir: Path, key: str, partial: Path) -> list[dict]:
+    """Готовые пачки сохраняются в partial — после сбоя оплаченное не запрашивается снова."""
+    by_id: dict[str, dict] = json.loads(partial.read_text(encoding="utf-8")) if partial.exists() else {}
+    lock = threading.Lock()
+
+    def run_batch(b: list[dict]) -> None:
+        got = _ask(model, b, clip_dir, key)
+        with lock:
             by_id.update(got)
+            write_json(partial, by_id)
+
+    batches = [clips[i:i + BATCH] for i in range(0, len(clips), BATCH)]
+    todo = [b for b in batches if not all(c["clip"] in by_id for c in b)]
+    with ThreadPoolExecutor(max_workers=PARALLEL) as ex:
+        list(ex.map(run_batch, todo))
     redo = [c for c in clips if c["clip"] in set(misaligned(clips, {k: v.get("phonetic", "") for k, v in by_id.items()}))]
     with ThreadPoolExecutor(max_workers=PARALLEL) as ex:
         for got in ex.map(lambda c: _ask(model, [c], clip_dir, key), redo):
@@ -44,9 +60,8 @@ def run(lesson_dir: Path, folders: dict[str, str], pair: tuple[str, str] | None,
     blind_dir = lesson_dir / "blind"
     blind_dir.mkdir(exist_ok=True)
     if pair is None:
-        (blind_dir / "_unavailable.json").write_text(json.dumps(
-            {"reason_ru": "Для этого ключа нет двух разных сильных моделей Gemini — блок «подтверждено» не формируется."},
-            ensure_ascii=False), encoding="utf-8")
+        write_json(blind_dir / "_unavailable.json",
+                   {"reason_ru": "Для этого ключа нет двух разных сильных моделей Gemini — блок «подтверждено» не формируется."})
         return {"pair": None}
     for name, folder in folders.items():
         clip_dir = lesson_dir / "clips" / folder
@@ -54,7 +69,14 @@ def run(lesson_dir: Path, folders: dict[str, str], pair: tuple[str, str] | None,
         (blind_dir / folder).mkdir(exist_ok=True)
         todo = [m for m in pair if not (blind_dir / folder / f"{m}.json").exists()]
         with ThreadPoolExecutor(max_workers=2) as ex:
-            results = dict(zip(todo, ex.map(lambda m: _transcribe(m, clips, clip_dir, key), todo)))
-        for m, res in results.items():
-            (blind_dir / folder / f"{m}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+            futs = {ex.submit(_transcribe, m, clips, clip_dir, key, blind_dir / folder / f"{m}.partial.json"): m
+                    for m in todo}
+            errors = []
+            for fut in as_completed(futs):  # каждую модель сохраняем сразу, даже если другая упала
+                try:
+                    write_json(blind_dir / folder / f"{futs[fut]}.json", fut.result())
+                except Exception as e:  # noqa: BLE001
+                    errors.append(e)
+            if errors:
+                raise errors[0]
     return {"pair": list(pair)}

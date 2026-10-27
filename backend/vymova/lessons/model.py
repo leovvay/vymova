@@ -21,6 +21,7 @@ StepStatus = Literal["pending", "running", "done", "failed", "skipped"]
 class StepState(BaseModel):
     status: StepStatus = "pending"
     error_ru: str | None = None
+    attempts: int = 0
     started_at: datetime | None = None
     finished_at: datetime | None = None
 

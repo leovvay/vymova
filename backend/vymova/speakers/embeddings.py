@@ -4,6 +4,7 @@ import threading
 from pathlib import Path
 
 from ..config import paths
+from ..jsonio import write_json
 from ..transcription import group, words
 
 MODEL_DIR_NAME = "wavlm-base-plus-sv"
@@ -75,7 +76,7 @@ def lesson_embeddings(lesson_dir: Path, transcript: dict, speaker_ids: list[str]
             if v:
                 out[spk] = v
         del fe, model
-    cache.write_text(json.dumps(out), encoding="utf-8")
+    write_json(cache, out)
     return out
 
 

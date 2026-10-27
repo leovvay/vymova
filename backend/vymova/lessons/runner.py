@@ -27,6 +27,7 @@ _queue: "queue.Queue[str]" = queue.Queue()
 _queued: set[str] = set()
 _qlock = threading.Lock()
 _started = False
+MAX_STARTS = 3
 
 
 def _delays() -> list[float]:
@@ -51,7 +52,7 @@ def retry(lesson_id: str) -> None:
     lesson = store.get(lesson_id)
     for st in lesson.steps.values():
         if st.status == "failed":
-            st.status, st.error_ru = "pending", None
+            st.status, st.error_ru, st.attempts = "pending", None, 0
     store.save_state(lesson)
     enqueue(lesson_id)
 
@@ -86,12 +87,19 @@ def _run_lesson(lesson_id: str) -> None:
         if reg.artifact(lesson).exists():
             _set(lesson, step, "done")
             continue
+        if st.attempts >= MAX_STARTS:  # процесс падал посреди шага (например, не хватило памяти)
+            _set(lesson, step, "failed", f"Шаг «{STEP_TITLES_RU[step]}» прерывался несколько раз подряд — "
+                                         "возможно, компьютеру не хватает памяти. Закройте другие программы "
+                                         "и нажмите «Повторить».")
+            return
+        st.attempts += 1
         _set(lesson, step, "running")
         delays = _delays()
         for attempt in range(len(delays) + 1):
             try:
                 result = reg.fn(lesson)
                 lesson = store.get(lesson_id)
+                lesson.steps[step].attempts = 0
                 if result == "skipped":
                     _set(lesson, step, "skipped")
                 elif reg.artifact(lesson).exists():
@@ -101,7 +109,7 @@ def _run_lesson(lesson_id: str) -> None:
                 break
             except Exception as e:  # noqa: BLE001 - любая ошибка шага уходит в повтор
                 msg = e.message_ru if isinstance(e, StepError) else \
-                    f"Шаг «{STEP_TITLES_RU[step]}» не удался: {type(e).__name__}."
+                    f"Шаг «{STEP_TITLES_RU[step]}» не удался. Нажмите «Повторить»; если не поможет — сообщите разработчику."
                 log.warning("%s: step %s attempt %d failed: %s", lesson_id, step, attempt + 1, type(e).__name__)
                 if attempt < len(delays) and not (isinstance(e, StepError) and not e.retry):
                     time.sleep(delays[attempt])

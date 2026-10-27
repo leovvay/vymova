@@ -2,6 +2,8 @@
 import re
 import unicodedata
 
+from ..blind.align import sim
+
 APOS = str.maketrans({"’": "'", "ʼ": "'", "`": "'", "ʹ": "'"})
 
 
@@ -11,8 +13,14 @@ def norm(s: str) -> str:
 
 
 def quote_ok(quote: str, transcription: str) -> bool:
-    q = norm(quote)
-    return len(q) >= 2 and q in norm(transcription)
+    """Цитата — целые слова слепой записи, хотя бы 3 буквы."""
+    q = norm(quote).strip(" .,;!?…")
+    if sum(ch.isalpha() for ch in q) < 3:
+        return False
+    return re.search(r"(?<![\w'])" + re.escape(q) + r"(?![\w'])", norm(transcription)) is not None
+
+
+MIN_AB_SIM = 0.5  # обе модели должны услышать одно и то же место, а не разные слова
 
 
 def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], replies: dict[str, str | None]) -> dict:
@@ -25,10 +33,14 @@ def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], repli
             continue
         q = ex.get("quotes") or {}
         a, b = quote_ok(q.get("A", ""), blind_a.get(cid, "")), quote_ok(q.get("B", ""), blind_b.get(cid, ""))
-        ex = {**ex, "verified": "both" if a and b else "A" if a else "B" if b else "none"}
+        if a and b and sim(q.get("A", ""), q.get("B", "")) < MIN_AB_SIM:
+            a = b = False
+            ex = {**ex, "verified": "mismatch"}
+        else:
+            ex = {**ex, "verified": "both" if a and b else "A" if a else "B" if b else "none"}
         if ex["verified"] == "both":
             best = "both"
-        elif ex["verified"] != "none" and best == "none":
+        elif ex["verified"] in ("A", "B") and best == "none":
             best = "one"
         kept.append(ex)
     claimed = f.get("status")
@@ -42,7 +54,7 @@ def check(finding: dict, blind_a: dict[str, str], blind_b: dict[str, str], repli
         status = "rejected"
         f["reason_ru"] = f.get("reason_ru") or "Цитаты из слепых записей не подтвердились."
     f["status"] = status
-    f["examples"] = [e for e in kept if e["verified"] != "none"] if status != "rejected" else kept
+    f["examples"] = [e for e in kept if e["verified"] in ("both", "A", "B")] if status != "rejected" else kept
     def taught(e: dict) -> bool:
         reply = norm(replies.get(e["clip"]) or "")
         word = norm(e.get("word", "")).strip(".,!?")

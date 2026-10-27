@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -8,6 +9,7 @@ from . import runner, store
 from .model import Lesson
 
 router = APIRouter(prefix="/api/lessons", tags=["lessons"])
+MEDIA_EXT = {".mp4", ".m4a", ".mp3", ".wav", ".webm", ".ogg", ".oga", ".mov", ".mkv", ".aac", ".flac"}
 
 
 def _get(lesson_id: str) -> Lesson:
@@ -19,6 +21,10 @@ def _get(lesson_id: str) -> Lesson:
 @router.post("")
 def create_lesson(file: UploadFile = File(...), date: str | None = Form(None), topic: str | None = Form(None),
                   people: int | None = Form(None)) -> Lesson:
+    if date and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+        raise HTTPException(422, "Дата урока — в формате ГГГГ-ММ-ДД")
+    if Path(file.filename or "").suffix.lower() not in MEDIA_EXT:
+        raise HTTPException(422, "Нужен файл записи: mp4, m4a, mp3, wav, webm, ogg, mov, mkv, aac или flac")
     if people is not None and not 2 <= people <= 8:
         raise HTTPException(422, "Число людей на записи — от 2 до 8")
     lesson = store.create(file.file, file.filename or "lesson", date or None, topic or None, people)
@@ -48,9 +54,9 @@ def lesson_file(lesson_id: str, path: str) -> FileResponse:
     _get(lesson_id)
     root = store.dir(lesson_id).resolve()
     f = (root / path).resolve()
-    if not f.is_relative_to(root) or not f.is_file() or f.name == "state.json":
+    if not f.is_relative_to(root) or not f.is_file() or f.name == "state.json" or f.name.startswith("source."):
         raise HTTPException(404, "Файл не найден")
-    return FileResponse(f)
+    return FileResponse(f, headers={"X-Content-Type-Options": "nosniff"})
 
 
 @router.put("/{lesson_id}/speakers")
@@ -64,12 +70,14 @@ def label_speakers(lesson_id: str, labels: dict[str, speakers.SpeakerLabel]) -> 
     if set(labels) - known:
         raise HTTPException(422, "Неизвестный голос")
     students: dict[str, list[str]] = {}
+    display: dict[str, str] = {}
     teacher: list[str] = []
     for spk, lab in labels.items():
         if lab.role == "student":
-            name = (lab.name or "").strip()
+            name = " ".join((lab.name or "").split())
             if not name:
                 raise HTTPException(422, "У студента должно быть имя")
+            name = display.setdefault(name.casefold(), name)  # «Влад» и «влад » — один студент
             students.setdefault(name, []).append(spk)
         elif lab.role == "teacher":
             teacher.append(spk)

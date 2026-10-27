@@ -29,6 +29,6 @@ def transcribe(path: Path, key: str, num_speakers: int | None = None) -> dict:
         raise StepError(f"ElevenLabs вернул ошибку {r.status_code}. Нажмите «Повторить» позже.")
     out = r.json()
     if not out.get("words"):
-        raise StepError("ElevenLabs не нашёл речи в записи.")
+        raise StepError("ElevenLabs не нашёл речи в записи.", retry=False)
     json.dumps(out)  # проверка сериализуемости до записи
     return out
