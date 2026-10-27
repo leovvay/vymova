@@ -1,0 +1,9 @@
+.superpowers/
+*.mp4
+*.m4a
+*.mp3
+*.wav
+.env
+__pycache__/
+.venv/
+data/

@@ -1,0 +1,30 @@
+You are an expert phonetician and teacher of Ukrainian as a foreign language.
+
+The attached audio is a 55-minute online group Ukrainian lesson (beginner level; topic: numerals 0–1000, рік/роки/років, pronouns мені/тобі/йому, phone numbers). The first ~12 minutes are near-silence before the lesson starts.
+Speakers: "Влад" (the student I care about; native Russian/Belarusian speaker who lives in Poland and also speaks Polish), "Викладач" (teacher, native Ukrainian), "Студент 2" (another student — IGNORE).
+
+Below is an ASR transcript with timestamps (MM:SS from the start of the audio) and speaker labels. The ASR is roughly verbatim but it NORMALISES things: many numbers are written as digits, stress is not marked, and slightly mispronounced words may be written in their correct spelling. Use it only for orientation — your judgement must come from LISTENING to the audio.
+
+TASK: Listen to every utterance by Влад and find his PRONUNCIATION problems against standard Ukrainian (literary orthoepy). Check specifically:
+- vowels: і in closed syllables (сім, вісім, шість), и vs і, unstressed о kept as [о] (no Russian/Belarusian akanie), unstressed е vs и;
+- consonants hard before е and и (дев'ять must have hard [д]; Russian-style softening is an error), soft consonants where required (-цять, -сять, ть, дь, ць), long soft [ц':] in -надцять, шіст- clusters;
+- г as voiced [ɦ] (not [g] or [ɣ]); в at syllable end as [ў]/[w] (not [ф]); no final devoicing (Ukrainian keeps final voiced consonants voiced); ч and щ hardness;
+- word stress (e.g. одина́дцять, чотирна́дцять, дев'ятна́дцять, ро́ки vs роки́, мені́, вісімдеся́т, дев'яно́сто, шістсо́т etc.);
+- Russian/Belarusian/Polish pronunciation interference in general, and moments where the teacher repeated a word after him (usually a correction) — say what exactly was wrong.
+- For every place where the ASR shows digits in Влад's speech, tell how he actually pronounced the number.
+- Also list places where the ASR text differs from what Влад really said.
+
+Rules: report only what you actually hear. Prefer fewer, well-grounded findings over speculation. Give each finding a confidence. Timestamps must match the audio (MM:SS). Explanations in Russian; Ukrainian words in Cyrillic; "heard_as" is a Cyrillic phonetic rendering of what he actually said, with stress marked by an acute accent and softness by an apostrophe-like ' where useful.
+
+Return JSON only:
+{
+ "pronunciation_issues": [{"time":"MM:SS","word_expected":"","heard_as":"","category":"vowel|softness|hardness|stress|g|v|devoicing|akanie|cluster|interference|other","explanation_ru":"","teacher_corrected":true,"confidence":"high|medium|low"}],
+ "numbers_pronounced": [{"time":"MM:SS","asr_text":"","heard_as":"","ok":true,"note_ru":""}],
+ "asr_mismatches": [{"time":"MM:SS","asr_text":"","actually_said":""}],
+ "patterns_ru": [{"pattern":"","examples":[""],"how_to_fix":""}],
+ "strengths_ru": [""],
+ "overall_ru": ""
+}
+
+TRANSCRIPT:
+<diarized transcript goes here>
